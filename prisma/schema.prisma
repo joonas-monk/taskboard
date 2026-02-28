@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Priority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model Column {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  order     Float
+  createdAt DateTime @default(now())
+  cards     Card[]
+}
+
+model Card {
+  id          String    @id @default(cuid())
+  title       String
+  description String    @default("")
+  priority    Priority  @default(MEDIUM)
+  dueDate     DateTime?
+  archived    Boolean   @default(false)
+  position    Float
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  columnId String
+  column   Column @relation(fields: [columnId], references: [id])
+
+  labels CardLabel[]
+}
+
+model Label {
+  id    String      @id @default(cuid())
+  name  String      @unique
+  color String
+  cards CardLabel[]
+}
+
+model CardLabel {
+  card    Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId  String
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  labelId String
+
+  @@id([cardId, labelId])
+}
