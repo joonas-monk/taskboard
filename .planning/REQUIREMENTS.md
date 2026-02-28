@@ -1,0 +1,113 @@
+# Requirements: TaskBoard
+
+**Defined:** 2026-02-28
+**Core Value:** One place to capture ideas and track them through to completion — from idea to done, visually and with drag & drop.
+
+## v1 Requirements
+
+Requirements for initial release. Each maps to roadmap phases.
+
+### Board
+
+- [ ] **BOARD-01**: User sees a kanban board with 5 fixed columns: Idea, Suunnittelu, Toteutus, Testaus, Valmis
+
+### Card Management
+
+- [ ] **CARD-01**: User can create a new card with title in any column
+- [ ] **CARD-02**: User can open a card in a modal to edit title, description, priority, due date, and labels
+- [ ] **CARD-03**: User can delete a card with a confirmation dialog
+- [ ] **CARD-04**: User can write a description in plain text with markdown rendering
+- [ ] **CARD-05**: User can archive a card (soft-delete) instead of permanent deletion
+- [ ] **CARD-06**: User can view archived cards
+
+### Drag & Drop
+
+- [ ] **DND-01**: User can drag a card from one column to another
+- [ ] **DND-02**: User can reorder cards within a column by dragging
+- [ ] **DND-03**: Card positions persist after page refresh
+
+### Card Metadata
+
+- [ ] **META-01**: User can set priority (High/Medium/Low) and see it as a badge on the card
+- [ ] **META-02**: User can set a due date and see an overdue indicator when past due
+- [ ] **META-03**: User can assign color-coded labels to a card
+
+### Data & Infrastructure
+
+- [ ] **DATA-01**: All card data persists in SQLite and survives server restart
+- [ ] **DATA-02**: Application is deployable to Hostinger VPS and accessible via browser
+
+### Search & Navigation
+
+- [ ] **SRCH-01**: User can search cards by keyword across all columns
+- [ ] **SRCH-02**: User can filter cards by label or priority
+- [ ] **SRCH-03**: User can use keyboard shortcuts for common actions (create card, open card, close modal)
+
+## v2 Requirements
+
+Deferred to future release. Tracked but not in current roadmap.
+
+### Board Customization
+
+- **BCUST-01**: User can rename columns
+- **BCUST-02**: User can reorder columns
+- **BCUST-03**: Column card count badge displays in header
+
+### Card Enhancements
+
+- **CENH-01**: User can add checklists/subtasks to cards
+- **CENH-02**: User can set recurring tasks
+
+### Analytics
+
+- **ANAL-01**: User can see board summary statistics (cards per column, completion rate)
+
+## Out of Scope
+
+Explicitly excluded. Documented to prevent scope creep.
+
+| Feature | Reason |
+|---------|--------|
+| Multi-user / team features | Single user only — VPS secured by other means |
+| Authentication / login | VPS network security handles access control |
+| Multiple boards | Labels sufficient for categorization on one board |
+| Real-time sync / WebSockets | Single user — page refresh sufficient |
+| File attachments | Storage/bandwidth complexity; link in description instead |
+| Comments / activity log | Single user — no one to communicate with |
+| Mobile app | Web responsive design sufficient |
+| Notifications / email | Single user — overdue indicator on board is enough |
+| Time tracking | Separate product category; priority + due date sufficient |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| BOARD-01 | — | Pending |
+| CARD-01 | — | Pending |
+| CARD-02 | — | Pending |
+| CARD-03 | — | Pending |
+| CARD-04 | — | Pending |
+| CARD-05 | — | Pending |
+| CARD-06 | — | Pending |
+| DND-01 | — | Pending |
+| DND-02 | — | Pending |
+| DND-03 | — | Pending |
+| META-01 | — | Pending |
+| META-02 | — | Pending |
+| META-03 | — | Pending |
+| DATA-01 | — | Pending |
+| DATA-02 | — | Pending |
+| SRCH-01 | — | Pending |
+| SRCH-02 | — | Pending |
+| SRCH-03 | — | Pending |
+
+**Coverage:**
+- v1 requirements: 18 total
+- Mapped to phases: 0
+- Unmapped: 18
+
+---
+*Requirements defined: 2026-02-28*
+*Last updated: 2026-02-28 after initial definition*
