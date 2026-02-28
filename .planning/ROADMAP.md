@@ -56,7 +56,9 @@ Plans:
   2. User can open a card modal and edit title, description (with markdown rendering), priority, due date, and label color — changes persist after page refresh
   3. User can delete a card after confirming a dialog — the card is gone after page refresh
   4. User sees a loading/pending state while a save is in progress and an error message if a save fails
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 03-01-PLAN.md -- Server Actions implementation, AddCardForm/CardModal components, Board/Column/Card wiring
 
 ### Phase 4: Drag and Drop
 **Goal**: Users can reorganize the board by dragging cards between columns and within columns, and the order survives a page refresh
@@ -99,7 +101,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 1/1 | Complete | 2026-02-28 |
 | 2. Board Shell | 1/1 | Complete   | 2026-02-28 |
-| 3. Card CRUD | 0/? | Not started | - |
+| 3. Card CRUD | 0/1 | Planned | - |
 | 4. Drag and Drop | 0/? | Not started | - |
 | 5. Deployment | 0/? | Not started | - |
 | 6. Quality of Life | 0/? | Not started | - |
