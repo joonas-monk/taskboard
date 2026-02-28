@@ -19,6 +19,7 @@ import {
   moveTaskSchema,
   reorderTasksSchema,
 } from './schemas'
+import { startPipeline } from './ai'
 
 function formatZodError(error: { issues: Array<{ message: string }> }): string {
   return error.issues.map((i) => i.message).join(', ')
@@ -58,6 +59,20 @@ export async function createTask(
       },
       include: { labels: { include: { label: true } } },
     })
+
+    // AI-01: Auto-start pipeline for cards created in the Idea column.
+    // Detect Idea column by querying its name (first column from seed data).
+    const column = await prisma.column.findUnique({
+      where: { id: parsed.data.columnId },
+      select: { name: true },
+    })
+    if (column?.name === 'Idea') {
+      // Fire-and-forget — startPipeline spawns a detached worker.
+      // Errors are recorded in PipelineRun, not propagated to card creation.
+      startPipeline({ cardId: card.id }).catch(() => {
+        // Silently ignore — pipeline failure is tracked via pipelineStatus = FAILED
+      })
+    }
 
     revalidatePath('/')
     return { success: true, data: card }
