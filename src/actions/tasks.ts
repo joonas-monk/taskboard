@@ -108,8 +108,21 @@ export async function moveTask(
   if (!parsed.success) {
     return { success: false, error: formatZodError(parsed.error) }
   }
-  // STUB: Phase 4 implements (drag & drop)
-  return { success: false, error: 'Ei toteutettu' }
+
+  try {
+    const card = await prisma.card.update({
+      where: { id: parsed.data.id },
+      data: {
+        columnId: parsed.data.targetColumnId,
+        position: parsed.data.position,
+      },
+      include: { labels: { include: { label: true } } },
+    })
+    revalidatePath('/')
+    return { success: true, data: card }
+  } catch {
+    return { success: false, error: 'Kortin siirto epäonnistui' }
+  }
 }
 
 export async function deleteTask(
@@ -135,8 +148,18 @@ export async function reorderTasks(
   if (!parsed.success) {
     return { success: false, error: formatZodError(parsed.error) }
   }
-  // STUB: Phase 4 implements (drag & drop reorder within column)
-  return { success: false, error: 'Ei toteutettu' }
+
+  try {
+    await prisma.$transaction(
+      parsed.data.map(({ id, position }) =>
+        prisma.card.update({ where: { id }, data: { position } })
+      )
+    )
+    revalidatePath('/')
+    return { success: true, data: undefined }
+  } catch {
+    return { success: false, error: 'Järjestyksen tallennus epäonnistui' }
+  }
 }
 
 // Query function (not a Server Action -- no mutation)
