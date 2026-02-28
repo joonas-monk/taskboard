@@ -12,7 +12,7 @@ A personal kanban board built on Next.js 16 and SQLite, deployed to a Hostinger 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Data Foundation** - Schema, Prisma/SQLite setup, Server Actions as stubs, typed query functions
+- [x] **Phase 1: Data Foundation** - Schema, Prisma/SQLite setup, Server Actions as stubs, typed query functions
 - [ ] **Phase 2: Board Shell** - Static board UI with real data, 5 fixed columns, card faces with metadata display
 - [ ] **Phase 3: Card CRUD** - Create, edit, delete cards with full field set and Server Actions wired up
 - [ ] **Phase 4: Drag and Drop** - DnD between and within columns with persisted float-based card ordering
@@ -30,7 +30,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. All card fields (title, description, priority, due date, labels, archived flag, column, position) are represented in the Prisma schema and a migration has run
   3. TypeScript types for tasks and columns are defined and used throughout — no `any` in the data layer
   4. Server Action stubs exist for createTask, updateTask, moveTask, deleteTask, reorderTasks and each returns a typed response
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [x] 01-01-PLAN.md -- Prisma schema, types, position utilities, Server Action stubs with Zod validation
 
 ### Phase 2: Board Shell
 **Goal**: Users can see their kanban board with all 5 columns and real card data — no placeholder data, no hydration errors
@@ -93,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Foundation | 0/? | Not started | - |
+| 1. Data Foundation | 1/1 | Complete | 2026-02-28 |
 | 2. Board Shell | 0/? | Not started | - |
 | 3. Card CRUD | 0/? | Not started | - |
 | 4. Drag and Drop | 0/? | Not started | - |

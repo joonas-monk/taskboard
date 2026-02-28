@@ -34,7 +34,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Data & Infrastructure
 
-- [ ] **DATA-01**: All card data persists in SQLite and survives server restart
+- [x] **DATA-01**: All card data persists in SQLite and survives server restart
 - [ ] **DATA-02**: Application is deployable to Hostinger VPS and accessible via browser
 
 ### Search & Navigation
@@ -97,7 +97,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | META-01 | Phase 2 | Pending |
 | META-02 | Phase 2 | Pending |
 | META-03 | Phase 2 | Pending |
-| DATA-01 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 5 | Pending |
 | SRCH-01 | Phase 6 | Pending |
 | SRCH-02 | Phase 6 | Pending |
@@ -110,4 +110,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 after roadmap creation — all 18 v1 requirements mapped*
+*Last updated: 2026-02-28 after Phase 1 completion — DATA-01 complete*
