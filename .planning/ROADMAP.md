@@ -114,9 +114,9 @@ Plans:
   3. User can click the card and see the "Tekoäly-loki" tab with the full conversation
   4. User can pause a running pipeline and retry a failed one from the modal
   5. The board auto-refreshes to show card movements without manual page reload
-**Plans:** 2 plans
+**Plans:** 1/2 plans complete
 Plans:
-- [ ] 07-01-PLAN.md -- Card type selector in AddCardForm, PipelineIndicator on card face, Board polling
+- [x] 07-01-PLAN.md -- Card type selector in AddCardForm, PipelineIndicator on card face, Board polling
 - [ ] 07-02-PLAN.md -- Tabbed CardModal with Tekoaly-loki log viewer and pipeline control buttons
 
 ### Phase 8: Polish
@@ -165,7 +165,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 4. Drag and Drop | 1/1 | Complete | 2026-02-28 |
 | 5. AI Pipeline Foundation | 2/2 | Complete | 2026-02-28 |
 | 6. Pipeline Execution | 2/2 | Complete | 2026-02-28 |
-| 7. Pipeline UI | 0/2 | Not started | - |
+| 7. Pipeline UI | 1/2 | In progress | - |
 | 8. Polish | 0/? | Not started | - |
 | 9. Deployment | 0/? | Not started | - |
 | 10. Quality of Life | 0/? | Not started | - |

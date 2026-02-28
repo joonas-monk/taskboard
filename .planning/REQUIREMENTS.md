@@ -42,8 +42,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AI-01**: When user creates a card in Idea column, AI automatically starts planning and moves card to Suunnittelu
 - [x] **AI-02**: AI executes the plan (Claude Code CLI for code, Claude API for others) and moves card to Toteutus → Testaus
 - [x] **AI-03**: AI verifies/tests the output and moves card to Valmis when complete
-- [ ] **AI-04**: User can select card type (Koodiprojekti, Tutkimus, Liiketoiminta, Yleinen) when creating a card
-- [ ] **AI-05**: User can see AI pipeline status (spinner, stage progress) on each card
+- [x] **AI-04**: User can select card type (Koodiprojekti, Tutkimus, Liiketoiminta, Yleinen) when creating a card
+- [x] **AI-05**: User can see AI pipeline status (spinner, stage progress) on each card
 - [ ] **AI-06**: User can view AI conversation log in card modal (Tekoäly-loki tab)
 - [ ] **AI-07**: User can pause a running pipeline and retry a failed one
 - [x] **AI-08**: AI conversation history and artifacts persist in database
@@ -112,8 +112,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AI-01 | Phase 5 | Complete |
 | AI-02 | Phase 6 | Complete |
 | AI-03 | Phase 6 | Complete |
-| AI-04 | Phase 7 | Pending |
-| AI-05 | Phase 7 | Pending |
+| AI-04 | Phase 7 | Complete |
+| AI-05 | Phase 7 | Complete |
 | AI-06 | Phase 7 | Pending |
 | AI-07 | Phase 7 | Pending |
 | AI-08 | Phase 5 | Complete |
@@ -129,4 +129,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 after Phase 3 completion — CARD-01, CARD-02, CARD-03, CARD-04 complete*
+*Last updated: 2026-02-28 after Phase 7 Plan 1 completion — AI-04, AI-05 complete*
