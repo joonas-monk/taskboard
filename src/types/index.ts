@@ -1,8 +1,8 @@
-import type { Card, Column, Label, CardLabel, Priority } from '../generated/prisma/client'
+import type { Card, Column, Label, CardLabel, Priority, CardType, PipelineStatus, PipelineRun, PipelineMessage } from '../generated/prisma/client'
 import type { Prisma } from '../generated/prisma/client'
 
 // Re-export model types
-export type { Card, Column, Label, CardLabel, Priority }
+export type { Card, Column, Label, CardLabel, Priority, CardType, PipelineStatus, PipelineRun, PipelineMessage }
 
 // Card with its labels populated (through join table)
 export type CardWithLabels = Prisma.CardGetPayload<{
@@ -55,6 +55,28 @@ export type ReorderTasksInput = {
   position: number
 }[]
 
+// Pipeline Server Action input types
+export type StartPipelineInput = {
+  cardId: string
+}
+
+// Pipeline status query result
+export type PipelineStatusResult = {
+  status: PipelineStatus
+  run: (PipelineRun & { messages: PipelineMessage[] }) | null
+}
+
+// Serialized pipeline types for RSC -> Client boundary
+export type SerializedPipelineMessage = Omit<PipelineMessage, 'createdAt'> & {
+  createdAt: string
+}
+
+export type SerializedPipelineRun = Omit<PipelineRun, 'createdAt' | 'updatedAt' | 'messages'> & {
+  createdAt: string
+  updatedAt: string
+  messages: SerializedPipelineMessage[]
+}
+
 // Serialized types for RSC -> Client Component boundary
 // Date fields converted from Date objects to ISO strings
 export type SerializedCard = Omit<
@@ -64,6 +86,8 @@ export type SerializedCard = Omit<
   dueDate: string | null
   createdAt: string
   updatedAt: string
+  // Pipeline fields are non-Date scalars — pass through unchanged
+  // cardType: CardType and pipelineStatus: PipelineStatus are already included via Omit spread
 }
 
 export type SerializedColumn = Omit<ColumnWithCards, 'cards' | 'createdAt'> & {
