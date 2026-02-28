@@ -14,6 +14,24 @@ enum Priority {
   LOW
 }
 
+enum CardType {
+  CODE
+  RESEARCH
+  BUSINESS
+  GENERAL
+}
+
+enum PipelineStatus {
+  IDLE
+  QUEUED
+  PLANNING
+  EXECUTING
+  TESTING
+  COMPLETED
+  FAILED
+  PAUSED
+}
+
 model Column {
   id        String   @id @default(cuid())
   name      String   @unique
@@ -36,7 +54,10 @@ model Card {
   columnId String
   column   Column @relation(fields: [columnId], references: [id])
 
-  labels CardLabel[]
+  labels         CardLabel[]
+  cardType       CardType       @default(GENERAL)
+  pipelineStatus PipelineStatus @default(IDLE)
+  pipelineRuns   PipelineRun[]
 }
 
 model Label {
@@ -53,4 +74,28 @@ model CardLabel {
   labelId String
 
   @@id([cardId, labelId])
+}
+
+model PipelineRun {
+  id        String         @id @default(cuid())
+  stage     String
+  status    PipelineStatus
+  error     String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  cardId   String
+  card     Card             @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  messages PipelineMessage[]
+}
+
+model PipelineMessage {
+  id           String   @id @default(cuid())
+  role         String
+  content      String
+  artifactType String?
+  createdAt    DateTime @default(now())
+
+  pipelineRunId String
+  pipelineRun   PipelineRun @relation(fields: [pipelineRunId], references: [id], onDelete: Cascade)
 }
