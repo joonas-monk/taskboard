@@ -91,15 +91,18 @@ Plans:
 - [x] 05-02-PLAN.md -- Pipeline worker (detached tsx process), startPipeline/getPipelineStatus Server Actions, AI-01 auto-start in createTask
 
 ### Phase 6: Pipeline Execution
-**Goal**: The full pipeline runs end-to-end — planning, execution (Claude Code CLI for code, API for others), and testing — with error handling and retry
+**Goal**: The full pipeline runs end-to-end — planning, execution (Claude Agent SDK for code, API for others), and testing — with error handling and retry
 **Depends on**: Phase 5
 **Requirements**: AI-02, AI-03
 **Success Criteria** (what must be TRUE):
-  1. A CODE card goes through all three stages: plan (Claude API), execute (Claude Code CLI), test (Claude API reviews output)
+  1. A CODE card goes through all three stages: plan (Claude API), execute (Claude Agent SDK), test (Claude API reviews output)
   2. A RESEARCH card goes through all three stages using Claude API only
   3. A failed pipeline can be retried from the failed stage
   4. A running pipeline can be paused and does not continue to the next stage
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 06-01-PLAN.md -- Agent SDK install, workspace utility, execution/testing prompt builders and stage runners
+- [ ] 06-02-PLAN.md -- Full 3-stage pipeline worker orchestration, pausePipeline Server Action, retry-from-failed-stage
 
 ### Phase 7: Pipeline UI
 **Goal**: Users see pipeline progress on cards, view AI conversation logs, control the pipeline, and select card types
@@ -158,7 +161,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 3. Card CRUD | 1/1 | Complete | 2026-02-28 |
 | 4. Drag and Drop | 1/1 | Complete | 2026-02-28 |
 | 5. AI Pipeline Foundation | 2/? | In progress | - |
-| 6. Pipeline Execution | 0/? | Not started | - |
+| 6. Pipeline Execution | 0/2 | Not started | - |
 | 7. Pipeline UI | 0/? | Not started | - |
 | 8. Polish | 0/? | Not started | - |
 | 9. Deployment | 0/? | Not started | - |
