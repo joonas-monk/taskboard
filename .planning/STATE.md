@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-28T20:31:23Z"
+last_updated: "2026-02-28T20:36:16Z"
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** One place to capture ideas and track them through to completion — from idea to done, visually and with drag & drop.
-**Current focus:** Phase 6 - Pipeline Execution (Plan 1 complete)
+**Current focus:** Phase 6 - Pipeline Execution (Plan 2 complete)
 
 ## Current Position
 
 Phase: 6 of 6 (Pipeline Execution)
-Plan: 1 of N in current phase (Plan 01 complete)
-Status: Phase 6 in progress — Plan 01 complete
-Last activity: 2026-02-28 — Phase 6 Plan 1 executed: Agent SDK installed, workspace utility, execution and testing stage functions
+Plan: 2 of N in current phase (Plan 02 complete)
+Status: Phase 6 in progress — Plan 02 complete
+Last activity: 2026-02-28 — Phase 6 Plan 2 executed: Full 3-stage pipeline orchestration, pausePipeline action, retry-from-failed
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 4 min
-- Total execution time: 0.44 hours
+- Total plans completed: 8
+- Average duration: 3.9 min
+- Total execution time: ~0.47 hours
 
 **By Phase:**
 
@@ -45,7 +45,7 @@ Progress: [█████████░] 90%
 | 3. Card CRUD | 1/1 | 6 min | 6 min |
 | 4. Drag and Drop | 1/1 | 2 min | 2 min |
 | 5. AI Pipeline Foundation | 2/2 | 5 min | 2.5 min |
-| 6. Pipeline Execution | 1/? | 2 min | 2 min |
+| 6. Pipeline Execution | 2/? | 4 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 5min, 6min, 2min, 3min, 2min
@@ -56,6 +56,7 @@ Progress: [█████████░] 90%
 | Phase 05-ai-pipeline-foundation P01 | 3 | 2 tasks | 7 files |
 | Phase 05-ai-pipeline-foundation P02 | 2 | 2 tasks | 5 files |
 | Phase 06-pipeline-execution P01 | 2 | 2 tasks | 5 files |
+| Phase 06-pipeline-execution P02 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,11 @@ Recent decisions affecting current work:
 - [Phase 06-01]: Explicit env: { ANTHROPIC_API_KEY, PATH, HOME } in Agent SDK options — worker spawn env may be restricted
 - [Phase 06-01]: runExecutionStageApi uses max_tokens: 8096 — non-CODE cards may produce longer execution output
 - [Phase 06-01]: runTestingStage uses max_tokens: 4096 — evaluation output is shorter than execution output
+- [Phase 06-02]: checkPaused() always queries DB fresh — never caches — worker sees PAUSED flag the moment it is set
+- [Phase 06-02]: advanceToStage() uses $transaction to atomically update PipelineRun stage/status AND Card columnId/position/pipelineStatus
+- [Phase 06-02]: Retry point determined by latestRun.stage — worker loads prior messages by artifactType to reconstruct planText and execResult
+- [Phase 06-02]: startPipeline accepts PAUSED state alongside IDLE and FAILED — worker determines start stage from previous run
+- [Phase 06-02]: HOME passed in worker spawn env — required by WORKSPACE_BASE default in workspace.ts and Agent SDK env option
 
 ### Pending Todos
 
@@ -104,5 +110,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 06-01-PLAN.md (Pipeline Execution). Plan 01 complete. Agent SDK installed, workspace utility, execution and testing stage functions implemented.
+Stopped at: Completed 06-02-PLAN.md (Pipeline Execution). Plan 02 complete. Full 3-stage pipeline orchestration, pausePipeline action, retry-from-failed-stage implemented.
 Resume file: None

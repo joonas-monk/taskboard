@@ -99,10 +99,10 @@ Plans:
   2. A RESEARCH card goes through all three stages using Claude API only
   3. A failed pipeline can be retried from the failed stage
   4. A running pipeline can be paused and does not continue to the next stage
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans executed
 Plans:
-- [ ] 06-01-PLAN.md -- Agent SDK install, workspace utility, execution/testing prompt builders and stage runners
-- [ ] 06-02-PLAN.md -- Full 3-stage pipeline worker orchestration, pausePipeline Server Action, retry-from-failed-stage
+- [x] 06-01-PLAN.md -- Agent SDK install, workspace utility, execution/testing prompt builders and stage runners
+- [x] 06-02-PLAN.md -- Full 3-stage pipeline worker orchestration, pausePipeline Server Action, retry-from-failed-stage
 
 ### Phase 7: Pipeline UI
 **Goal**: Users see pipeline progress on cards, view AI conversation logs, control the pipeline, and select card types
@@ -160,8 +160,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Board Shell | 1/1 | Complete | 2026-02-28 |
 | 3. Card CRUD | 1/1 | Complete | 2026-02-28 |
 | 4. Drag and Drop | 1/1 | Complete | 2026-02-28 |
-| 5. AI Pipeline Foundation | 2/? | In progress | - |
-| 6. Pipeline Execution | 1/2 | In Progress|  |
+| 5. AI Pipeline Foundation | 2/2 | Complete | 2026-02-28 |
+| 6. Pipeline Execution | 2/2 | Complete | 2026-02-28 |
 | 7. Pipeline UI | 0/? | Not started | - |
 | 8. Polish | 0/? | Not started | - |
 | 9. Deployment | 0/? | Not started | - |
