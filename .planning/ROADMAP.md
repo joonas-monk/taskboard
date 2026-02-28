@@ -16,8 +16,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Board Shell** - Static board UI with real data, 5 fixed columns, card faces with metadata display (completed 2026-02-28)
 - [x] **Phase 3: Card CRUD** - Create, edit, delete cards with full field set and Server Actions wired up (completed 2026-02-28)
 - [x] **Phase 4: Drag and Drop** - DnD between and within columns with persisted float-based card ordering (completed 2026-02-28)
-- [ ] **Phase 5: Deployment** - VPS deployment with Nginx, PM2, SSL, and data persistence hardening
-- [ ] **Phase 6: Quality of Life** - Search, filter, archive, keyboard shortcuts
+- [ ] **Phase 5: AI Pipeline Foundation** - Database schema, Anthropic SDK, background worker, planning stage
+- [ ] **Phase 6: Pipeline Execution** - Full pipeline end-to-end, Claude Code CLI for code projects
+- [ ] **Phase 7: Pipeline UI** - Status indicators, log viewer, pipeline controls, card type selector
+- [ ] **Phase 8: Polish** - Robustness, edge cases, concurrent pipeline prevention, stale recovery
+- [ ] **Phase 9: Deployment** - VPS deployment with Nginx, PM2, SSL, and data persistence hardening
+- [ ] **Phase 10: Quality of Life** - Search, filter, archive, keyboard shortcuts
 
 ## Phase Details
 
@@ -72,9 +76,54 @@ Plans:
 Plans:
 - [ ] 04-01-PLAN.md -- dnd-kit integration: Server Actions + Board/Column/Card DnD wiring with optimistic local state
 
-### Phase 5: Deployment
-**Goal**: The application is accessible via browser at the user's domain with SSL, running reliably on the Hostinger VPS, with card data safe across redeploys
+### Phase 5: AI Pipeline Foundation
+**Goal**: Database schema supports AI pipeline data, Anthropic SDK integrated, background worker runs planning stage and moves card from Idea to Suunnittelu
 **Depends on**: Phase 4
+**Requirements**: AI-01, AI-08
+**Success Criteria** (what must be TRUE):
+  1. Calling startPipeline on a card in the Idea column spawns a background worker that moves the card to Suunnittelu and calls Claude API for planning
+  2. The plan text is stored as a PipelineMessage in the database
+  3. getPipelineStatus returns the current stage and messages
+  4. The worker exits cleanly after the planning stage
+**Plans**: TBD
+
+### Phase 6: Pipeline Execution
+**Goal**: The full pipeline runs end-to-end — planning, execution (Claude Code CLI for code, API for others), and testing — with error handling and retry
+**Depends on**: Phase 5
+**Requirements**: AI-02, AI-03
+**Success Criteria** (what must be TRUE):
+  1. A CODE card goes through all three stages: plan (Claude API), execute (Claude Code CLI), test (Claude API reviews output)
+  2. A RESEARCH card goes through all three stages using Claude API only
+  3. A failed pipeline can be retried from the failed stage
+  4. A running pipeline can be paused and does not continue to the next stage
+**Plans**: TBD
+
+### Phase 7: Pipeline UI
+**Goal**: Users see pipeline progress on cards, view AI conversation logs, control the pipeline, and select card types
+**Depends on**: Phase 6
+**Requirements**: AI-04, AI-05, AI-06, AI-07
+**Success Criteria** (what must be TRUE):
+  1. User creates a card in Idea with type "Koodiprojekti" and sees AI automatically start processing
+  2. The card shows a spinner and status text as it moves through columns
+  3. User can click the card and see the "Tekoäly-loki" tab with the full conversation
+  4. User can pause a running pipeline and retry a failed one from the modal
+  5. The board auto-refreshes to show card movements without manual page reload
+**Plans**: TBD
+
+### Phase 8: Polish
+**Goal**: Edge cases handled, robustness hardened, production-ready AI pipeline
+**Depends on**: Phase 7
+**Requirements**: (none — quality improvement)
+**Success Criteria** (what must be TRUE):
+  1. Only one pipeline can be actively processing at a time
+  2. Stale pipelines (from crashed worker) are detected on server start and reset to FAILED
+  3. API rate limit errors trigger exponential backoff retry (3 attempts)
+  4. All new UI text is in Finnish
+**Plans**: TBD
+
+### Phase 9: Deployment
+**Goal**: The application is accessible via browser at the user's domain with SSL, running reliably on the Hostinger VPS, with card data safe across redeploys
+**Depends on**: Phase 8
 **Requirements**: DATA-02
 **Success Criteria** (what must be TRUE):
   1. User can access the board in a browser via a custom domain over HTTPS
@@ -83,9 +132,9 @@ Plans:
   4. Port 3000 is not directly accessible from the internet — all traffic routes through Nginx
 **Plans**: TBD
 
-### Phase 6: Quality of Life
+### Phase 10: Quality of Life
 **Goal**: Users can efficiently navigate a growing board with search, filters, archive, and keyboard shortcuts
-**Depends on**: Phase 5
+**Depends on**: Phase 9
 **Requirements**: CARD-05, CARD-06, SRCH-01, SRCH-02, SRCH-03
 **Success Criteria** (what must be TRUE):
   1. User can type a keyword in a search box and see only matching cards across all columns
@@ -97,13 +146,17 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 1/1 | Complete | 2026-02-28 |
-| 2. Board Shell | 1/1 | Complete   | 2026-02-28 |
+| 2. Board Shell | 1/1 | Complete | 2026-02-28 |
 | 3. Card CRUD | 1/1 | Complete | 2026-02-28 |
-| 4. Drag and Drop | 1/1 | Complete   | 2026-02-28 |
-| 5. Deployment | 0/? | Not started | - |
-| 6. Quality of Life | 0/? | Not started | - |
+| 4. Drag and Drop | 1/1 | Complete | 2026-02-28 |
+| 5. AI Pipeline Foundation | 0/? | Not started | - |
+| 6. Pipeline Execution | 0/? | Not started | - |
+| 7. Pipeline UI | 0/? | Not started | - |
+| 8. Polish | 0/? | Not started | - |
+| 9. Deployment | 0/? | Not started | - |
+| 10. Quality of Life | 0/? | Not started | - |

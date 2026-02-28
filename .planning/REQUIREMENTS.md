@@ -37,6 +37,17 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DATA-01**: All card data persists in SQLite and survives server restart
 - [ ] **DATA-02**: Application is deployable to Hostinger VPS and accessible via browser
 
+### AI Pipeline
+
+- [ ] **AI-01**: When user creates a card in Idea column, AI automatically starts planning and moves card to Suunnittelu
+- [ ] **AI-02**: AI executes the plan (Claude Code CLI for code, Claude API for others) and moves card to Toteutus → Testaus
+- [ ] **AI-03**: AI verifies/tests the output and moves card to Valmis when complete
+- [ ] **AI-04**: User can select card type (Koodiprojekti, Tutkimus, Liiketoiminta, Yleinen) when creating a card
+- [ ] **AI-05**: User can see AI pipeline status (spinner, stage progress) on each card
+- [ ] **AI-06**: User can view AI conversation log in card modal (Tekoäly-loki tab)
+- [ ] **AI-07**: User can pause a running pipeline and retry a failed one
+- [ ] **AI-08**: AI conversation history and artifacts persist in database
+
 ### Search & Navigation
 
 - [ ] **SRCH-01**: User can search cards by keyword across all columns
@@ -89,8 +100,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CARD-02 | Phase 3 | Complete |
 | CARD-03 | Phase 3 | Complete |
 | CARD-04 | Phase 3 | Complete |
-| CARD-05 | Phase 6 | Pending |
-| CARD-06 | Phase 6 | Pending |
+| CARD-05 | Phase 10 | Pending |
+| CARD-06 | Phase 10 | Pending |
 | DND-01 | Phase 4 | Complete |
 | DND-02 | Phase 4 | Complete |
 | DND-03 | Phase 4 | Complete |
@@ -98,14 +109,22 @@ Which phases cover which requirements. Updated during roadmap creation.
 | META-02 | Phase 2 | Complete |
 | META-03 | Phase 2 | Complete |
 | DATA-01 | Phase 1 | Complete |
-| DATA-02 | Phase 5 | Pending |
-| SRCH-01 | Phase 6 | Pending |
-| SRCH-02 | Phase 6 | Pending |
-| SRCH-03 | Phase 6 | Pending |
+| AI-01 | Phase 5 | Pending |
+| AI-02 | Phase 6 | Pending |
+| AI-03 | Phase 6 | Pending |
+| AI-04 | Phase 7 | Pending |
+| AI-05 | Phase 7 | Pending |
+| AI-06 | Phase 7 | Pending |
+| AI-07 | Phase 7 | Pending |
+| AI-08 | Phase 5 | Pending |
+| DATA-02 | Phase 9 | Pending |
+| SRCH-01 | Phase 10 | Pending |
+| SRCH-02 | Phase 10 | Pending |
+| SRCH-03 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 18 total
-- Mapped to phases: 18
+- v1 requirements: 26 total
+- Mapped to phases: 26
 - Unmapped: 0
 
 ---
