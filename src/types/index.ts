@@ -54,3 +54,19 @@ export type ReorderTasksInput = {
   id: string
   position: number
 }[]
+
+// Serialized types for RSC -> Client Component boundary
+// Date fields converted from Date objects to ISO strings
+export type SerializedCard = Omit<
+  CardWithLabels,
+  'dueDate' | 'createdAt' | 'updatedAt'
+> & {
+  dueDate: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type SerializedColumn = Omit<ColumnWithCards, 'cards' | 'createdAt'> & {
+  createdAt: string
+  cards: SerializedCard[]
+}
