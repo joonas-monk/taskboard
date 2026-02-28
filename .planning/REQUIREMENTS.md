@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Board
 
-- [ ] **BOARD-01**: User sees a kanban board with 5 fixed columns: Idea, Suunnittelu, Toteutus, Testaus, Valmis
+- [x] **BOARD-01**: User sees a kanban board with 5 fixed columns: Idea, Suunnittelu, Toteutus, Testaus, Valmis
 
 ### Card Management
 
@@ -28,9 +28,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Card Metadata
 
-- [ ] **META-01**: User can set priority (High/Medium/Low) and see it as a badge on the card
-- [ ] **META-02**: User can set a due date and see an overdue indicator when past due
-- [ ] **META-03**: User can assign color-coded labels to a card
+- [x] **META-01**: User can set priority (High/Medium/Low) and see it as a badge on the card
+- [x] **META-02**: User can set a due date and see an overdue indicator when past due
+- [x] **META-03**: User can assign color-coded labels to a card
 
 ### Data & Infrastructure
 
@@ -84,7 +84,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BOARD-01 | Phase 2 | Pending |
+| BOARD-01 | Phase 2 | Complete |
 | CARD-01 | Phase 3 | Pending |
 | CARD-02 | Phase 3 | Pending |
 | CARD-03 | Phase 3 | Pending |
@@ -94,9 +94,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DND-01 | Phase 4 | Pending |
 | DND-02 | Phase 4 | Pending |
 | DND-03 | Phase 4 | Pending |
-| META-01 | Phase 2 | Pending |
-| META-02 | Phase 2 | Pending |
-| META-03 | Phase 2 | Pending |
+| META-01 | Phase 2 | Complete |
+| META-02 | Phase 2 | Complete |
+| META-03 | Phase 2 | Complete |
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 5 | Pending |
 | SRCH-01 | Phase 6 | Pending |

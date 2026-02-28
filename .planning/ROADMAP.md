@@ -13,7 +13,7 @@ A personal kanban board built on Next.js 16 and SQLite, deployed to a Hostinger 
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Data Foundation** - Schema, Prisma/SQLite setup, Server Actions as stubs, typed query functions
-- [ ] **Phase 2: Board Shell** - Static board UI with real data, 5 fixed columns, card faces with metadata display
+- [x] **Phase 2: Board Shell** - Static board UI with real data, 5 fixed columns, card faces with metadata display (completed 2026-02-28)
 - [ ] **Phase 3: Card CRUD** - Create, edit, delete cards with full field set and Server Actions wired up
 - [ ] **Phase 4: Drag and Drop** - DnD between and within columns with persisted float-based card ordering
 - [ ] **Phase 5: Deployment** - VPS deployment with Nginx, PM2, SSL, and data persistence hardening
@@ -43,9 +43,9 @@ Plans:
   2. User sees existing cards in the correct column, each showing title, priority badge, due date, and color label
   3. User sees an overdue indicator on cards whose due date has passed
   4. No hydration errors appear in the browser console after `next build && next start`
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
-- [ ] 02-01-PLAN.md -- UI primitives, board/column/card components, page wiring with data serialization
+- [x] 02-01-PLAN.md -- UI primitives, board/column/card components, page wiring with data serialization
 
 ### Phase 3: Card CRUD
 **Goal**: Users can create, edit, and delete cards with the full field set, and changes persist immediately
@@ -98,7 +98,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 1/1 | Complete | 2026-02-28 |
-| 2. Board Shell | 0/1 | In progress | - |
+| 2. Board Shell | 1/1 | Complete   | 2026-02-28 |
 | 3. Card CRUD | 0/? | Not started | - |
 | 4. Drag and Drop | 0/? | Not started | - |
 | 5. Deployment | 0/? | Not started | - |

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-28T11:32:10.966Z"
+last_updated: "2026-02-28T12:06:14.819Z"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_phases: 2
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -18,33 +18,34 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** One place to capture ideas and track them through to completion — from idea to done, visually and with drag & drop.
-**Current focus:** Phase 1 - Data Foundation (complete)
+**Current focus:** Phase 2 - Board Shell (complete)
 
 ## Current Position
 
-Phase: 1 of 6 (Data Foundation)
+Phase: 2 of 6 (Board Shell)
 Plan: 1 of 1 in current phase
-Status: Phase 1 complete
-Last activity: 2026-02-28 — Phase 1 Plan 1 executed: data foundation complete
+Status: Phase 2 complete
+Last activity: 2026-02-28 — Phase 2 Plan 1 executed: board shell UI complete
 
-Progress: [█░░░░░░░░░] 10%
+Progress: [███░░░░░░░] 20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 10 min
-- Total execution time: 0.17 hours
+- Total plans completed: 2
+- Average duration: 8 min
+- Total execution time: 0.25 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Data Foundation | 1/1 | 10 min | 10 min |
+| 2. Board Shell | 1/1 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 10min
-- Trend: -
+- Last 5 plans: 10min, 5min
+- Trend: improving
 
 *Updated after each plan completion*
 
@@ -62,6 +63,8 @@ Recent decisions affecting current work:
 - [01-01]: Prisma 7 seed command configured in prisma.config.ts (not package.json) per Prisma 7 API
 - [01-01]: Zod 4 used for validation (installed version); API compatible with plan's Zod 3 patterns
 - [01-01]: Next.js 16 project scaffolded as prerequisite (greenfield project had no existing app)
+- [Phase 02-01]: BoardLoader client wrapper: Next.js 16 disallows ssr:false in Server Components, dynamic import moved to thin client component
+- [Phase 02-01]: Serialized types in src/types/index.ts (not page.tsx) to prevent client components importing from Server Component files
 
 ### Pending Todos
 
@@ -75,5 +78,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 01-01-PLAN.md (Data Foundation). Phase 1 complete. Next step: `/gsd:plan-phase 2`
+Stopped at: Completed 02-01-PLAN.md (Board Shell). Phase 2 complete. Next step: `/gsd:plan-phase 3`
 Resume file: None
