@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-last_updated: "2026-02-28T17:22:45Z"
+last_updated: "2026-02-28T17:27:16Z"
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 6
+  completed_plans: 6
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** One place to capture ideas and track them through to completion — from idea to done, visually and with drag & drop.
-**Current focus:** Phase 5 - AI Pipeline Foundation (Plan 1 complete)
+**Current focus:** Phase 5 - AI Pipeline Foundation (Plan 2 complete)
 
 ## Current Position
 
 Phase: 5 of 6 (AI Pipeline Foundation)
-Plan: 1 of N in current phase (Plan 01 complete)
-Status: Phase 5 in progress — Plan 01 complete
-Last activity: 2026-02-28 — Phase 5 Plan 1 executed: SQLite WAL mode, Anthropic SDK, PipelineRun/PipelineMessage schema migration, pipeline types
+Plan: 2 of N in current phase (Plan 02 complete)
+Status: Phase 5 in progress — Plan 02 complete
+Last activity: 2026-02-28 — Phase 5 Plan 2 executed: pipeline worker, startPipeline/getPipelineStatus Server Actions, AI-01 auto-start
 
-Progress: [████████░░] 80%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -44,7 +44,7 @@ Progress: [████████░░] 80%
 | 2. Board Shell | 1/1 | 5 min | 5 min |
 | 3. Card CRUD | 1/1 | 6 min | 6 min |
 | 4. Drag and Drop | 1/1 | 2 min | 2 min |
-| 5. AI Pipeline Foundation | 1/? | 3 min | 3 min |
+| 5. AI Pipeline Foundation | 2/? | 5 min | 2.5 min |
 
 **Recent Trend:**
 - Last 5 plans: 10min, 5min, 6min, 2min, 3min
@@ -53,6 +53,7 @@ Progress: [████████░░] 80%
 *Updated after each plan completion*
 | Phase 04-drag-and-drop P01 | 2 | 2 tasks | 4 files |
 | Phase 05-ai-pipeline-foundation P01 | 3 | 2 tasks | 7 files |
+| Phase 05-ai-pipeline-foundation P02 | 2 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,10 @@ Recent decisions affecting current work:
 - [Phase 05-01]: WAL mode set via raw better-sqlite3 open/pragma/close before Prisma adapter — adapter constructor does not support pragma options
 - [Phase 05-01]: PIPELINE_MODEL env var defaults to claude-3-5-haiku-20241022 for cost efficiency; easily changed without code changes
 - [Phase 05-01]: Anthropic SDK singleton in src/lib/anthropic.ts (not prisma.ts) for clean separation of concerns
+- [Phase 05-02]: Worker creates own PrismaClient + Anthropic instance — separate OS process cannot share Next.js globalThis
+- [Phase 05-02]: stdio: ignore on spawn — worker errors tracked via PipelineRun.error in DB, not console
+- [Phase 05-02]: startPipeline allows retry from FAILED state — enables re-running pipeline on previously failed cards
+- [Phase 05-02]: AI-01 auto-start via fire-and-forget startPipeline().catch() in createTask — pipeline errors don't fail card creation
 
 ### Pending Todos
 
@@ -92,5 +97,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 05-01-PLAN.md (AI Pipeline Foundation). Plan 01 complete. Next step: execute Phase 5 Plan 02 (pipeline worker) after setting ANTHROPIC_API_KEY in .env
+Stopped at: Completed 05-02-PLAN.md (AI Pipeline Foundation). Plan 02 complete. Pipeline worker, Server Actions, and AI-01 auto-start implemented.
 Resume file: None
