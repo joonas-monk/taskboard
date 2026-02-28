@@ -34,7 +34,7 @@ export default function Column({ column, onCardClick }: Props) {
         ref={setNodeRef}
         className="flex-1 overflow-y-auto p-2 flex flex-col gap-2"
       >
-        <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
+        <SortableContext items={cardIds} id={column.id} strategy={verticalListSortingStrategy}>
           {optimisticCards.length === 0 ? (
             <p className="text-xs text-slate-400 text-center py-4">
               Ei kortteja
