@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-02-28T14:20:36.789Z"
+status: in_progress
+last_updated: "2026-02-28T17:22:45Z"
 progress:
-  total_phases: 4
+  total_phases: 6
   completed_phases: 4
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** One place to capture ideas and track them through to completion — from idea to done, visually and with drag & drop.
-**Current focus:** Phase 4 - Drag and Drop (complete)
+**Current focus:** Phase 5 - AI Pipeline Foundation (Plan 1 complete)
 
 ## Current Position
 
-Phase: 4 of 6 (Drag and Drop)
-Plan: 1 of 1 in current phase
-Status: Phase 4 complete
-Last activity: 2026-02-28 — Phase 4 Plan 1 executed: drag-and-drop card movement with dnd-kit, float position persistence
+Phase: 5 of 6 (AI Pipeline Foundation)
+Plan: 1 of N in current phase (Plan 01 complete)
+Status: Phase 5 in progress — Plan 01 complete
+Last activity: 2026-02-28 — Phase 5 Plan 1 executed: SQLite WAL mode, Anthropic SDK, PipelineRun/PipelineMessage schema migration, pipeline types
 
-Progress: [███████░░░] 67%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 6 min
-- Total execution time: 0.38 hours
+- Total plans completed: 5
+- Average duration: 5 min
+- Total execution time: 0.41 hours
 
 **By Phase:**
 
@@ -44,13 +44,15 @@ Progress: [███████░░░] 67%
 | 2. Board Shell | 1/1 | 5 min | 5 min |
 | 3. Card CRUD | 1/1 | 6 min | 6 min |
 | 4. Drag and Drop | 1/1 | 2 min | 2 min |
+| 5. AI Pipeline Foundation | 1/? | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 10min, 5min, 6min, 2min
+- Last 5 plans: 10min, 5min, 6min, 2min, 3min
 - Trend: fast
 
 *Updated after each plan completion*
 | Phase 04-drag-and-drop P01 | 2 | 2 tasks | 4 files |
+| Phase 05-ai-pipeline-foundation P01 | 3 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -73,6 +75,9 @@ Recent decisions affecting current work:
 - [Phase 03-01]: Single CardModal at Board level, not per-Column, for clean DOM
 - [Phase 04-drag-and-drop]: Use @dnd-kit/core 6.x (not @dnd-kit/react) — stable library; DndContext wraps full board for cross-column drags; PointerSensor 8px activationConstraint preserves card modal clicks
 - [Phase 04-drag-and-drop]: Local columns state (useState) updated synchronously before awaiting Server Action in handleDragEnd — prevents snap-back flicker; useEffect syncs from serverColumns after revalidatePath
+- [Phase 05-01]: WAL mode set via raw better-sqlite3 open/pragma/close before Prisma adapter — adapter constructor does not support pragma options
+- [Phase 05-01]: PIPELINE_MODEL env var defaults to claude-3-5-haiku-20241022 for cost efficiency; easily changed without code changes
+- [Phase 05-01]: Anthropic SDK singleton in src/lib/anthropic.ts (not prisma.ts) for clean separation of concerns
 
 ### Pending Todos
 
@@ -82,9 +87,10 @@ None.
 
 - [Phase 1]: ORM inconsistency resolved — committed to Prisma 7 with working schema and migration.
 - [Phase 4]: Float ordering edge cases now specified — initial spacing 1000, rebalance threshold 0.001, position utilities implemented.
+- [Phase 5-01]: ANTHROPIC_API_KEY must be set in .env before pipeline execution (currently placeholder sk-ant-...your-key-here)
 
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 04-01-PLAN.md (Drag and Drop). Phase 4 complete. Next step: `/gsd:plan-phase 5` or `/gsd:verify-work`
+Stopped at: Completed 05-01-PLAN.md (AI Pipeline Foundation). Plan 01 complete. Next step: execute Phase 5 Plan 02 (pipeline worker) after setting ANTHROPIC_API_KEY in .env
 Resume file: None

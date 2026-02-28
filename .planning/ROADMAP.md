@@ -85,7 +85,9 @@ Plans:
   2. The plan text is stored as a PipelineMessage in the database
   3. getPipelineStatus returns the current stage and messages
   4. The worker exits cleanly after the planning stage
-**Plans**: TBD
+**Plans**: 1 plan complete
+Plans:
+- [x] 05-01-PLAN.md -- SQLite WAL mode, Anthropic SDK, PipelineRun/PipelineMessage schema migration, pipeline types and Zod schemas
 
 ### Phase 6: Pipeline Execution
 **Goal**: The full pipeline runs end-to-end — planning, execution (Claude Code CLI for code, API for others), and testing — with error handling and retry
@@ -154,7 +156,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Board Shell | 1/1 | Complete | 2026-02-28 |
 | 3. Card CRUD | 1/1 | Complete | 2026-02-28 |
 | 4. Drag and Drop | 1/1 | Complete | 2026-02-28 |
-| 5. AI Pipeline Foundation | 0/? | Not started | - |
+| 5. AI Pipeline Foundation | 1/? | In progress | - |
 | 6. Pipeline Execution | 0/? | Not started | - |
 | 7. Pipeline UI | 0/? | Not started | - |
 | 8. Polish | 0/? | Not started | - |

@@ -46,7 +46,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **AI-05**: User can see AI pipeline status (spinner, stage progress) on each card
 - [ ] **AI-06**: User can view AI conversation log in card modal (Tekoäly-loki tab)
 - [ ] **AI-07**: User can pause a running pipeline and retry a failed one
-- [ ] **AI-08**: AI conversation history and artifacts persist in database
+- [x] **AI-08**: AI conversation history and artifacts persist in database
 
 ### Search & Navigation
 
@@ -116,7 +116,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AI-05 | Phase 7 | Pending |
 | AI-06 | Phase 7 | Pending |
 | AI-07 | Phase 7 | Pending |
-| AI-08 | Phase 5 | Pending |
+| AI-08 | Phase 5 | Complete |
 | DATA-02 | Phase 9 | Pending |
 | SRCH-01 | Phase 10 | Pending |
 | SRCH-02 | Phase 10 | Pending |
