@@ -43,7 +43,9 @@ Plans:
   2. User sees existing cards in the correct column, each showing title, priority badge, due date, and color label
   3. User sees an overdue indicator on cards whose due date has passed
   4. No hydration errors appear in the browser console after `next build && next start`
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 02-01-PLAN.md -- UI primitives, board/column/card components, page wiring with data serialization
 
 ### Phase 3: Card CRUD
 **Goal**: Users can create, edit, and delete cards with the full field set, and changes persist immediately
@@ -96,7 +98,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 1/1 | Complete | 2026-02-28 |
-| 2. Board Shell | 0/? | Not started | - |
+| 2. Board Shell | 0/1 | In progress | - |
 | 3. Card CRUD | 0/? | Not started | - |
 | 4. Drag and Drop | 0/? | Not started | - |
 | 5. Deployment | 0/? | Not started | - |
