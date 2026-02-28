@@ -1,4 +1,4 @@
-import { getBoard } from '@/actions/tasks'
+import { getBoard, getLabels } from '@/actions/tasks'
 import BoardLoader from '@/components/board/BoardLoader'
 import type { ColumnWithCards, SerializedColumn } from '@/types'
 
@@ -16,12 +16,12 @@ function serializeColumn(col: ColumnWithCards): SerializedColumn {
 }
 
 export default async function HomePage() {
-  const columns = await getBoard()
+  const [columns, labels] = await Promise.all([getBoard(), getLabels()])
   const serialized = columns.map(serializeColumn)
 
   return (
     <main className="h-screen overflow-hidden">
-      <BoardLoader columns={serialized} />
+      <BoardLoader columns={serialized} labels={labels} />
     </main>
   )
 }
