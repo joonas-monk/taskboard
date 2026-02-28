@@ -5,7 +5,8 @@ import path from 'path'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import type { ActionResult, PipelineStatusResult } from '@/types'
-import { startPipelineSchema, getPipelineStatusSchema } from './ai-schemas'
+import { startPipelineSchema, getPipelineStatusSchema, pausePipelineSchema } from './ai-schemas'
+import type { PipelineStatus } from '@/types'
 
 function formatZodError(error: { issues: Array<{ message: string }> }): string {
   return error.issues.map((i) => i.message).join(', ')
@@ -37,7 +38,7 @@ export async function startPipeline(
       return { success: false, error: 'Korttia ei löydy' }
     }
 
-    if (card.pipelineStatus !== 'IDLE' && card.pipelineStatus !== 'FAILED') {
+    if (card.pipelineStatus !== 'IDLE' && card.pipelineStatus !== 'FAILED' && card.pipelineStatus !== 'PAUSED') {
       return { success: false, error: 'Pipeline on jo käynnissä tai valmis' }
     }
 
@@ -66,6 +67,7 @@ export async function startPipeline(
         PIPELINE_MODEL: process.env.PIPELINE_MODEL ?? 'claude-3-5-haiku-20241022',
         NODE_ENV: process.env.NODE_ENV ?? 'production',
         PATH: process.env.PATH,
+        HOME: process.env.HOME,
       },
     })
     worker.unref()
@@ -121,5 +123,43 @@ export async function getPipelineStatus(
     }
   } catch {
     return { success: false, error: 'Tilan haku epäonnistui' }
+  }
+}
+
+/**
+ * Pause a running pipeline.
+ * Sets pipelineStatus to PAUSED for cards that are in PLANNING, EXECUTING, or TESTING state.
+ * The worker checks this flag between stages and exits cleanly when it detects PAUSED.
+ */
+export async function pausePipeline(
+  input: { cardId: string }
+): Promise<ActionResult<void>> {
+  const parsed = pausePipelineSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: formatZodError(parsed.error) }
+  }
+
+  const { cardId } = parsed.data
+
+  try {
+    const card = await prisma.card.findUnique({
+      where: { id: cardId },
+      select: { pipelineStatus: true },
+    })
+
+    const pauseable: PipelineStatus[] = ['PLANNING', 'EXECUTING', 'TESTING']
+    if (!card || !pauseable.includes(card.pipelineStatus as PipelineStatus)) {
+      return { success: false, error: 'Pipeline ei ole käynnissä' }
+    }
+
+    await prisma.card.update({
+      where: { id: cardId },
+      data: { pipelineStatus: 'PAUSED' },
+    })
+
+    revalidatePath('/')
+    return { success: true, data: undefined }
+  } catch {
+    return { success: false, error: 'Pipelinen pysäytys epäonnistui' }
   }
 }

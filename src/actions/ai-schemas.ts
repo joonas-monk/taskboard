@@ -7,3 +7,7 @@ export const startPipelineSchema = z.object({
 export const getPipelineStatusSchema = z.object({
   cardId: z.string().min(1, 'Kortin tunniste vaaditaan'),
 })
+
+export const pausePipelineSchema = z.object({
+  cardId: z.string().min(1, 'Kortin tunniste vaaditaan'),
+})
