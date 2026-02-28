@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-28T12:49:38.661Z"
+last_updated: "2026-02-28T14:16:24.311Z"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 3
-  completed_plans: 3
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** One place to capture ideas and track them through to completion — from idea to done, visually and with drag & drop.
-**Current focus:** Phase 3 - Card CRUD (complete)
+**Current focus:** Phase 4 - Drag and Drop (complete)
 
 ## Current Position
 
-Phase: 3 of 6 (Card CRUD)
+Phase: 4 of 6 (Drag and Drop)
 Plan: 1 of 1 in current phase
-Status: Phase 3 complete
-Last activity: 2026-02-28 — Phase 3 Plan 1 executed: full card CRUD with optimistic UI
+Status: Phase 4 complete
+Last activity: 2026-02-28 — Phase 4 Plan 1 executed: drag-and-drop card movement with dnd-kit, float position persistence
 
-Progress: [█████░░░░░] 50%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 7 min
-- Total execution time: 0.35 hours
+- Total plans completed: 4
+- Average duration: 6 min
+- Total execution time: 0.38 hours
 
 **By Phase:**
 
@@ -43,12 +43,14 @@ Progress: [█████░░░░░] 50%
 | 1. Data Foundation | 1/1 | 10 min | 10 min |
 | 2. Board Shell | 1/1 | 5 min | 5 min |
 | 3. Card CRUD | 1/1 | 6 min | 6 min |
+| 4. Drag and Drop | 1/1 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 10min, 5min, 6min
-- Trend: stable
+- Last 5 plans: 10min, 5min, 6min, 2min
+- Trend: fast
 
 *Updated after each plan completion*
+| Phase 04-drag-and-drop P01 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -69,6 +71,8 @@ Recent decisions affecting current work:
 - [Phase 03-01]: Inline delete confirmation (not window.confirm) for polished UX
 - [Phase 03-01]: Labels fetched via separate getLabels() with Promise.all, not merged into getBoard()
 - [Phase 03-01]: Single CardModal at Board level, not per-Column, for clean DOM
+- [Phase 04-drag-and-drop]: Use @dnd-kit/core 6.x (not @dnd-kit/react) — stable library; DndContext wraps full board for cross-column drags; PointerSensor 8px activationConstraint preserves card modal clicks
+- [Phase 04-drag-and-drop]: Local columns state (useState) updated synchronously before awaiting Server Action in handleDragEnd — prevents snap-back flicker; useEffect syncs from serverColumns after revalidatePath
 
 ### Pending Todos
 
@@ -82,5 +86,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 03-01-PLAN.md (Card CRUD). Phase 3 complete. Next step: `/gsd:plan-phase 4`
+Stopped at: Completed 04-01-PLAN.md (Drag and Drop). Phase 4 complete. Next step: `/gsd:plan-phase 5` or `/gsd:verify-work`
 Resume file: None

@@ -22,9 +22,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Drag & Drop
 
-- [ ] **DND-01**: User can drag a card from one column to another
-- [ ] **DND-02**: User can reorder cards within a column by dragging
-- [ ] **DND-03**: Card positions persist after page refresh
+- [x] **DND-01**: User can drag a card from one column to another
+- [x] **DND-02**: User can reorder cards within a column by dragging
+- [x] **DND-03**: Card positions persist after page refresh
 
 ### Card Metadata
 
@@ -91,9 +91,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CARD-04 | Phase 3 | Complete |
 | CARD-05 | Phase 6 | Pending |
 | CARD-06 | Phase 6 | Pending |
-| DND-01 | Phase 4 | Pending |
-| DND-02 | Phase 4 | Pending |
-| DND-03 | Phase 4 | Pending |
+| DND-01 | Phase 4 | Complete |
+| DND-02 | Phase 4 | Complete |
+| DND-03 | Phase 4 | Complete |
 | META-01 | Phase 2 | Complete |
 | META-02 | Phase 2 | Complete |
 | META-03 | Phase 2 | Complete |
