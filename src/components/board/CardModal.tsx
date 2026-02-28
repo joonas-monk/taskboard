@@ -1,8 +1,12 @@
 'use client'
 
 import { useRef, useEffect, useActionState, useTransition, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { updateTask, deleteTask } from '@/actions/tasks'
 import type { SerializedCard, ActionResult, CardWithLabels } from '@/types'
+import PipelineLog from './PipelineLog'
+
+type Tab = 'kortti' | 'loki'
 
 interface Props {
   card: SerializedCard | null
@@ -15,6 +19,8 @@ export function CardModal({ card, labels, onClose }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [deleteIsPending, startDeleteTransition] = useTransition()
+  const [activeTab, setActiveTab] = useState<Tab>('kortti')
+  const router = useRouter()
 
   // Sync dialog open/close state with card prop
   useEffect(() => {
@@ -27,10 +33,11 @@ export function CardModal({ card, labels, onClose }: Props) {
     }
   }, [card])
 
-  // Reset delete confirmation state when card changes
+  // Reset delete confirmation state and tab when card changes
   useEffect(() => {
     setConfirmDelete(false)
     setDeleteError(null)
+    setActiveTab('kortti')
   }, [card])
 
   // Close on backdrop click
@@ -100,142 +107,184 @@ export function CardModal({ card, labels, onClose }: Props) {
             </button>
           </div>
 
-          <form action={formAction} key={card.id} className="flex flex-col gap-4">
-            <input type="hidden" name="id" value={card.id} />
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="card-title" className="text-sm font-medium text-slate-700">
-                Otsikko
-              </label>
-              <input
-                id="card-title"
-                type="text"
-                name="title"
-                defaultValue={card.title}
-                required
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="card-description" className="text-sm font-medium text-slate-700">
-                Kuvaus
-              </label>
-              <textarea
-                id="card-description"
-                name="description"
-                defaultValue={card.description}
-                rows={4}
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm resize-y min-h-[100px] focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="card-priority" className="text-sm font-medium text-slate-700">
-                Prioriteetti
-              </label>
-              <select
-                id="card-priority"
-                name="priority"
-                defaultValue={card.priority}
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="CRITICAL">Kriittinen</option>
-                <option value="HIGH">Korkea</option>
-                <option value="MEDIUM">Keskitaso</option>
-                <option value="LOW">Matala</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="card-duedate" className="text-sm font-medium text-slate-700">
-                Erapaiva
-              </label>
-              <input
-                id="card-duedate"
-                type="date"
-                name="dueDate"
-                defaultValue={card.dueDate ? card.dueDate.slice(0, 10) : ''}
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-slate-700">Tarrat</span>
-              <div className="flex flex-col gap-2 mt-1">
-                {labels.map((label) => (
-                  <label key={label.id} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="labelIds"
-                      value={label.id}
-                      defaultChecked={card.labels.some((cl) => cl.label.id === label.id)}
-                      className="rounded"
-                    />
-                    <span
-                      className="w-3 h-3 rounded-full shrink-0 inline-block"
-                      style={{ backgroundColor: label.color }}
-                    />
-                    <span className="text-sm text-slate-700">{label.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={isPending}
-                className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                {isPending ? 'Tallennetaan...' : 'Tallenna'}
-              </button>
-              {updateState && !updateState.success && (
-                <p className="text-red-600 text-sm">{updateState.error}</p>
-              )}
-            </div>
-          </form>
-
-          <div className="border-t border-slate-200 mt-6 pt-4">
-            {!confirmDelete ? (
+          {/* Tab navigation — only show when card has non-IDLE pipeline status */}
+          {card.pipelineStatus !== 'IDLE' && (
+            <div className="flex border-b border-slate-200 mb-4">
               <button
                 type="button"
-                onClick={() => setConfirmDelete(true)}
-                className="text-red-600 hover:text-red-700 text-sm transition-colors"
+                onClick={() => setActiveTab('kortti')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeTab === 'kortti'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
               >
-                Poista kortti
+                Kortti
               </button>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <p className="text-sm text-slate-600">
-                  Haluatko varmasti poistaa taman kortin?
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    disabled={deleteIsPending}
-                    className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 disabled:opacity-50 transition-colors"
-                  >
-                    {deleteIsPending ? 'Poistetaan...' : 'Vahvista poisto'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setConfirmDelete(false)
-                      setDeleteError(null)
-                    }}
-                    className="text-slate-600 px-3 py-1.5 rounded text-sm hover:bg-slate-200 transition-colors"
-                  >
-                    Peruuta
-                  </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('loki')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeTab === 'loki'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                Tekoaly-loki
+              </button>
+            </div>
+          )}
+
+          {/* Kortti tab: existing edit form and delete section */}
+          {(card.pipelineStatus === 'IDLE' || activeTab === 'kortti') && (
+            <>
+              <form action={formAction} key={card.id} className="flex flex-col gap-4">
+                <input type="hidden" name="id" value={card.id} />
+
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="card-title" className="text-sm font-medium text-slate-700">
+                    Otsikko
+                  </label>
+                  <input
+                    id="card-title"
+                    type="text"
+                    name="title"
+                    defaultValue={card.title}
+                    required
+                    className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
                 </div>
-                {deleteError && (
-                  <p className="text-red-600 text-sm">{deleteError}</p>
+
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="card-description" className="text-sm font-medium text-slate-700">
+                    Kuvaus
+                  </label>
+                  <textarea
+                    id="card-description"
+                    name="description"
+                    defaultValue={card.description}
+                    rows={4}
+                    className="w-full rounded border border-slate-300 px-3 py-2 text-sm resize-y min-h-[100px] focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="card-priority" className="text-sm font-medium text-slate-700">
+                    Prioriteetti
+                  </label>
+                  <select
+                    id="card-priority"
+                    name="priority"
+                    defaultValue={card.priority}
+                    className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  >
+                    <option value="CRITICAL">Kriittinen</option>
+                    <option value="HIGH">Korkea</option>
+                    <option value="MEDIUM">Keskitaso</option>
+                    <option value="LOW">Matala</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="card-duedate" className="text-sm font-medium text-slate-700">
+                    Erapaiva
+                  </label>
+                  <input
+                    id="card-duedate"
+                    type="date"
+                    name="dueDate"
+                    defaultValue={card.dueDate ? card.dueDate.slice(0, 10) : ''}
+                    className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-slate-700">Tarrat</span>
+                  <div className="flex flex-col gap-2 mt-1">
+                    {labels.map((label) => (
+                      <label key={label.id} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="labelIds"
+                          value={label.id}
+                          defaultChecked={card.labels.some((cl) => cl.label.id === label.id)}
+                          className="rounded"
+                        />
+                        <span
+                          className="w-3 h-3 rounded-full shrink-0 inline-block"
+                          style={{ backgroundColor: label.color }}
+                        />
+                        <span className="text-sm text-slate-700">{label.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    {isPending ? 'Tallennetaan...' : 'Tallenna'}
+                  </button>
+                  {updateState && !updateState.success && (
+                    <p className="text-red-600 text-sm">{updateState.error}</p>
+                  )}
+                </div>
+              </form>
+
+              <div className="border-t border-slate-200 mt-6 pt-4">
+                {!confirmDelete ? (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(true)}
+                    className="text-red-600 hover:text-red-700 text-sm transition-colors"
+                  >
+                    Poista kortti
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-slate-600">
+                      Haluatko varmasti poistaa taman kortin?
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={deleteIsPending}
+                        className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 disabled:opacity-50 transition-colors"
+                      >
+                        {deleteIsPending ? 'Poistetaan...' : 'Vahvista poisto'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setConfirmDelete(false)
+                          setDeleteError(null)
+                        }}
+                        className="text-slate-600 px-3 py-1.5 rounded text-sm hover:bg-slate-200 transition-colors"
+                      >
+                        Peruuta
+                      </button>
+                    </div>
+                    {deleteError && (
+                      <p className="text-red-600 text-sm">{deleteError}</p>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
+            </>
+          )}
+
+          {/* Tekoaly-loki tab: pipeline conversation log */}
+          {card.pipelineStatus !== 'IDLE' && activeTab === 'loki' && (
+            <PipelineLog
+              cardId={card.id}
+              currentStatus={card.pipelineStatus}
+              onStatusChange={() => router.refresh()}
+            />
+          )}
         </div>
       )}
     </dialog>
