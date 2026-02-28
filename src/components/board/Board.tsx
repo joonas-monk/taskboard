@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   DndContext,
   DragOverlay,
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export default function Board({ columns: serverColumns, labels }: Props) {
+  const router = useRouter()
   const [columns, setColumns] = useState(serverColumns)
   const [selectedCard, setSelectedCard] = useState<SerializedCard | null>(null)
   const [activeCard, setActiveCard] = useState<SerializedCard | null>(null)
@@ -33,6 +35,19 @@ export default function Board({ columns: serverColumns, labels }: Props) {
   useEffect(() => {
     setColumns(serverColumns)
   }, [serverColumns])
+
+  // Auto-refresh board while any card has active pipeline status
+  useEffect(() => {
+    const ACTIVE_STATUSES = new Set(['QUEUED', 'PLANNING', 'EXECUTING', 'TESTING'])
+    const allCards = columns.flatMap(col => col.cards)
+    if (!allCards.some(c => ACTIVE_STATUSES.has(c.pipelineStatus))) return
+
+    const id = setInterval(() => {
+      router.refresh()
+    }, 5000)
+
+    return () => clearInterval(id)
+  }, [columns, router])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

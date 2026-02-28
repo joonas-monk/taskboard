@@ -6,6 +6,7 @@ import type { SerializedCard } from '@/types'
 import PriorityBadge from './PriorityBadge'
 import DateDisplay from './DateDisplay'
 import LabelChip from './LabelChip'
+import PipelineIndicator from './PipelineIndicator'
 
 interface Props {
   card: SerializedCard
@@ -47,6 +48,7 @@ export default function Card({ card, onClick }: Props) {
       <p className="text-sm font-medium text-slate-800 leading-snug">
         {card.title}
       </p>
+      <PipelineIndicator status={card.pipelineStatus} />
       <div className="flex items-center gap-1.5 flex-wrap">
         <PriorityBadge priority={card.priority} />
         {card.dueDate && <DateDisplay dueDate={card.dueDate} />}
