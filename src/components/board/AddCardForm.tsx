@@ -32,6 +32,8 @@ export function AddCardForm({ columnId, lastPosition, onOptimisticAdd }: Props) 
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       labels: [],
+      cardType: 'GENERAL',
+      pipelineStatus: 'IDLE',
     }
 
     startTransition(async () => {
