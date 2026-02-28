@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-28T17:33:28.035Z"
+last_updated: "2026-02-28T20:31:23Z"
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 5
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** One place to capture ideas and track them through to completion — from idea to done, visually and with drag & drop.
-**Current focus:** Phase 5 - AI Pipeline Foundation (Plan 2 complete)
+**Current focus:** Phase 6 - Pipeline Execution (Plan 1 complete)
 
 ## Current Position
 
-Phase: 5 of 6 (AI Pipeline Foundation)
-Plan: 2 of N in current phase (Plan 02 complete)
-Status: Phase 5 in progress — Plan 02 complete
-Last activity: 2026-02-28 — Phase 5 Plan 2 executed: pipeline worker, startPipeline/getPipelineStatus Server Actions, AI-01 auto-start
+Phase: 6 of 6 (Pipeline Execution)
+Plan: 1 of N in current phase (Plan 01 complete)
+Status: Phase 6 in progress — Plan 01 complete
+Last activity: 2026-02-28 — Phase 6 Plan 1 executed: Agent SDK installed, workspace utility, execution and testing stage functions
 
-Progress: [████████░░] 83%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 5 min
-- Total execution time: 0.41 hours
+- Total plans completed: 7
+- Average duration: 4 min
+- Total execution time: 0.44 hours
 
 **By Phase:**
 
@@ -44,16 +44,18 @@ Progress: [████████░░] 83%
 | 2. Board Shell | 1/1 | 5 min | 5 min |
 | 3. Card CRUD | 1/1 | 6 min | 6 min |
 | 4. Drag and Drop | 1/1 | 2 min | 2 min |
-| 5. AI Pipeline Foundation | 2/? | 5 min | 2.5 min |
+| 5. AI Pipeline Foundation | 2/2 | 5 min | 2.5 min |
+| 6. Pipeline Execution | 1/? | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 10min, 5min, 6min, 2min, 3min
+- Last 5 plans: 5min, 6min, 2min, 3min, 2min
 - Trend: fast
 
 *Updated after each plan completion*
 | Phase 04-drag-and-drop P01 | 2 | 2 tasks | 4 files |
 | Phase 05-ai-pipeline-foundation P01 | 3 | 2 tasks | 7 files |
 | Phase 05-ai-pipeline-foundation P02 | 2 | 2 tasks | 5 files |
+| Phase 06-pipeline-execution P01 | 2 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -83,6 +85,11 @@ Recent decisions affecting current work:
 - [Phase 05-02]: stdio: ignore on spawn — worker errors tracked via PipelineRun.error in DB, not console
 - [Phase 05-02]: startPipeline allows retry from FAILED state — enables re-running pipeline on previously failed cards
 - [Phase 05-02]: AI-01 auto-start via fire-and-forget startPipeline().catch() in createTask — pipeline errors don't fail card creation
+- [Phase 06-01]: Use @anthropic-ai/claude-agent-sdk query() for CODE execution — typed API, bundles own Claude Code engine, no external CLI needed
+- [Phase 06-01]: runExecutionStage consumes all for-await messages without break — prevents orphan Claude Code subprocesses
+- [Phase 06-01]: Explicit env: { ANTHROPIC_API_KEY, PATH, HOME } in Agent SDK options — worker spawn env may be restricted
+- [Phase 06-01]: runExecutionStageApi uses max_tokens: 8096 — non-CODE cards may produce longer execution output
+- [Phase 06-01]: runTestingStage uses max_tokens: 4096 — evaluation output is shorter than execution output
 
 ### Pending Todos
 
@@ -97,5 +104,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 05-02-PLAN.md (AI Pipeline Foundation). Plan 02 complete. Pipeline worker, Server Actions, and AI-01 auto-start implemented.
+Stopped at: Completed 06-01-PLAN.md (Pipeline Execution). Plan 01 complete. Agent SDK installed, workspace utility, execution and testing stage functions implemented.
 Resume file: None
