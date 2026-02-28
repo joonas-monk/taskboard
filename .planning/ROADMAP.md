@@ -68,7 +68,9 @@ Plans:
   1. User can drag a card from one column and drop it into another — the card appears in the new column immediately (optimistic) and persists after page refresh
   2. User can drag a card within a column to change its position — the new order persists after page refresh
   3. Card positions do not visibly snap back or flicker during or after a drag
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 04-01-PLAN.md -- dnd-kit integration: Server Actions + Board/Column/Card DnD wiring with optimistic local state
 
 ### Phase 5: Deployment
 **Goal**: The application is accessible via browser at the user's domain with SSL, running reliably on the Hostinger VPS, with card data safe across redeploys
