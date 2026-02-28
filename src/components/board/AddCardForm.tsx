@@ -8,17 +8,21 @@ interface Props {
   columnId: string
   lastPosition: number
   onOptimisticAdd: (card: SerializedCard) => void
+  isIdeaColumn: boolean
 }
 
-export function AddCardForm({ columnId, lastPosition, onOptimisticAdd }: Props) {
+export function AddCardForm({ columnId, lastPosition, onOptimisticAdd, isIdeaColumn }: Props) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
+  const [cardType, setCardType] = useState<'CODE' | 'RESEARCH' | 'BUSINESS' | 'GENERAL'>('GENERAL')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
+
+    const selectedCardType = isIdeaColumn ? cardType : 'GENERAL'
 
     const optimisticCard: SerializedCard = {
       id: 'optimistic-' + Date.now(),
@@ -32,16 +36,21 @@ export function AddCardForm({ columnId, lastPosition, onOptimisticAdd }: Props) 
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       labels: [],
-      cardType: 'GENERAL',
+      cardType: selectedCardType,
       pipelineStatus: 'IDLE',
     }
 
     startTransition(async () => {
       onOptimisticAdd(optimisticCard)
       setTitle('')
+      setCardType('GENERAL')
       setOpen(false)
       setError(null)
-      const result = await createTask({ title: optimisticCard.title, columnId })
+      const result = await createTask({
+        title: optimisticCard.title,
+        columnId,
+        cardType: isIdeaColumn ? cardType : undefined,
+      })
       if (!result.success) {
         setError(result.error)
       }
@@ -78,6 +87,18 @@ export function AddCardForm({ columnId, lastPosition, onOptimisticAdd }: Props) 
           disabled={isPending}
           className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
+        {isIdeaColumn && (
+          <select
+            value={cardType}
+            onChange={(e) => setCardType(e.target.value as 'CODE' | 'RESEARCH' | 'BUSINESS' | 'GENERAL')}
+            className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            <option value="GENERAL">Yleinen</option>
+            <option value="CODE">Koodiprojekti</option>
+            <option value="RESEARCH">Tutkimus</option>
+            <option value="BUSINESS">Liiketoiminta</option>
+          </select>
+        )}
         <div className="flex gap-2">
           <button
             type="submit"
@@ -91,6 +112,7 @@ export function AddCardForm({ columnId, lastPosition, onOptimisticAdd }: Props) 
             onClick={() => {
               setOpen(false)
               setTitle('')
+              setCardType('GENERAL')
             }}
             className="text-slate-600 px-3 py-1 rounded text-sm hover:bg-slate-300 transition-colors"
           >

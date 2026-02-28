@@ -32,6 +32,7 @@ export type CreateTaskInput = {
   description?: string
   dueDate?: string | null
   labelIds?: string[]
+  cardType?: CardType
 }
 
 export type UpdateTaskInput = {

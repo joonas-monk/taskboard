@@ -54,6 +54,7 @@ export default function Column({ column, onCardClick }: Props) {
         columnId={column.id}
         lastPosition={lastPosition}
         onOptimisticAdd={addOptimisticCard}
+        isIdeaColumn={column.name === 'Idea'}
       />
     </div>
   )

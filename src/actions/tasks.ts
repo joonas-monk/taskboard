@@ -49,6 +49,7 @@ export async function createTask(
         dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null,
         position,
         columnId: parsed.data.columnId,
+        cardType: parsed.data.cardType ?? 'GENERAL',
         labels: parsed.data.labelIds?.length
           ? {
               create: parsed.data.labelIds.map((labelId) => ({

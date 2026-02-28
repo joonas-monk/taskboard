@@ -7,6 +7,7 @@ export const createTaskSchema = z.object({
   description: z.string().optional(),
   dueDate: z.string().nullable().optional(),
   labelIds: z.array(z.string()).optional(),
+  cardType: z.enum(['CODE', 'RESEARCH', 'BUSINESS', 'GENERAL']).optional(),
 })
 
 export const updateTaskSchema = z.object({
