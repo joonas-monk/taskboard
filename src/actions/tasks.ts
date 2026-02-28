@@ -1,6 +1,8 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { positionAfterLast } from '@/lib/positions'
 import type {
   ActionResult,
   CardWithLabels,
@@ -10,6 +12,7 @@ import type {
   MoveTaskInput,
   ReorderTasksInput,
 } from '@/types'
+import type { Label } from '@/types'
 import {
   createTaskSchema,
   updateTaskSchema,
@@ -28,8 +31,39 @@ export async function createTask(
   if (!parsed.success) {
     return { success: false, error: formatZodError(parsed.error) }
   }
-  // STUB: Phase 3 implements the actual Prisma create
-  return { success: false, error: 'Ei toteutettu' }
+
+  try {
+    const last = await prisma.card.findFirst({
+      where: { columnId: parsed.data.columnId },
+      orderBy: { position: 'desc' },
+      select: { position: true },
+    })
+    const position = positionAfterLast(last?.position ?? 0)
+
+    const card = await prisma.card.create({
+      data: {
+        title: parsed.data.title,
+        description: parsed.data.description ?? '',
+        priority: parsed.data.priority ?? 'MEDIUM',
+        dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null,
+        position,
+        columnId: parsed.data.columnId,
+        labels: parsed.data.labelIds?.length
+          ? {
+              create: parsed.data.labelIds.map((labelId) => ({
+                label: { connect: { id: labelId } },
+              })),
+            }
+          : undefined,
+      },
+      include: { labels: { include: { label: true } } },
+    })
+
+    revalidatePath('/')
+    return { success: true, data: card }
+  } catch {
+    return { success: false, error: 'Kortin luonti epaonnistui' }
+  }
 }
 
 export async function updateTask(
@@ -39,8 +73,32 @@ export async function updateTask(
   if (!parsed.success) {
     return { success: false, error: formatZodError(parsed.error) }
   }
-  // STUB: Phase 3 implements
-  return { success: false, error: 'Ei toteutettu' }
+
+  try {
+    const { id, labelIds, dueDate, ...rest } = parsed.data
+
+    const card = await prisma.card.update({
+      where: { id },
+      data: {
+        ...rest,
+        dueDate: dueDate === undefined ? undefined : dueDate ? new Date(dueDate) : null,
+        ...(labelIds !== undefined && {
+          labels: {
+            deleteMany: {},
+            create: labelIds.map((labelId) => ({
+              label: { connect: { id: labelId } },
+            })),
+          },
+        }),
+      },
+      include: { labels: { include: { label: true } } },
+    })
+
+    revalidatePath('/')
+    return { success: true, data: card }
+  } catch {
+    return { success: false, error: 'Kortin paivitys epaonnistui' }
+  }
 }
 
 export async function moveTask(
@@ -60,8 +118,14 @@ export async function deleteTask(
   if (!id || typeof id !== 'string' || id.trim().length === 0) {
     return { success: false, error: 'Tunniste vaaditaan' }
   }
-  // STUB: Phase 3 implements
-  return { success: false, error: 'Ei toteutettu' }
+
+  try {
+    await prisma.card.delete({ where: { id } })
+    revalidatePath('/')
+    return { success: true, data: undefined }
+  } catch {
+    return { success: false, error: 'Kortin poisto epaonnistui' }
+  }
 }
 
 export async function reorderTasks(
@@ -93,4 +157,9 @@ export async function getBoard(): Promise<ColumnWithCards[]> {
     },
   })
   return columns as ColumnWithCards[]
+}
+
+// Query function for fetching all labels (not a mutation)
+export async function getLabels(): Promise<Label[]> {
+  return prisma.label.findMany({ orderBy: { name: 'asc' } })
 }
