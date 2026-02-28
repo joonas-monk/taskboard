@@ -39,7 +39,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### AI Pipeline
 
-- [ ] **AI-01**: When user creates a card in Idea column, AI automatically starts planning and moves card to Suunnittelu
+- [x] **AI-01**: When user creates a card in Idea column, AI automatically starts planning and moves card to Suunnittelu
 - [ ] **AI-02**: AI executes the plan (Claude Code CLI for code, Claude API for others) and moves card to Toteutus → Testaus
 - [ ] **AI-03**: AI verifies/tests the output and moves card to Valmis when complete
 - [ ] **AI-04**: User can select card type (Koodiprojekti, Tutkimus, Liiketoiminta, Yleinen) when creating a card
@@ -109,7 +109,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | META-02 | Phase 2 | Complete |
 | META-03 | Phase 2 | Complete |
 | DATA-01 | Phase 1 | Complete |
-| AI-01 | Phase 5 | Pending |
+| AI-01 | Phase 5 | Complete |
 | AI-02 | Phase 6 | Pending |
 | AI-03 | Phase 6 | Pending |
 | AI-04 | Phase 7 | Pending |
