@@ -53,7 +53,7 @@ Plans:
 **Requirements**: CARD-01, CARD-02, CARD-03, CARD-04
 **Success Criteria** (what must be TRUE):
   1. User can create a new card by clicking a button in any column — the card appears immediately with just a title
-  2. User can open a card modal and edit title, description (with markdown rendering), priority, due date, and label color — changes persist after page refresh
+  2. User can open a card modal and edit title, description (plain text), priority, due date, and label color — changes persist after page refresh
   3. User can delete a card after confirming a dialog — the card is gone after page refresh
   4. User sees a loading/pending state while a save is in progress and an error message if a save fails
 **Plans:** 1 plan
