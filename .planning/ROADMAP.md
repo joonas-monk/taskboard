@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Drag and Drop** - DnD between and within columns with persisted float-based card ordering (completed 2026-02-28)
 - [ ] **Phase 5: AI Pipeline Foundation** - Database schema, Anthropic SDK, background worker, planning stage
 - [ ] **Phase 6: Pipeline Execution** - Full pipeline end-to-end, Claude Code CLI for code projects
-- [ ] **Phase 7: Pipeline UI** - Status indicators, log viewer, pipeline controls, card type selector
+- [x] **Phase 7: Pipeline UI** - Status indicators, log viewer, pipeline controls, card type selector (completed 2026-02-28)
 - [ ] **Phase 8: Polish** - Robustness, edge cases, concurrent pipeline prevention, stale recovery
 - [ ] **Phase 9: Deployment** - VPS deployment with Nginx, PM2, SSL, and data persistence hardening
 - [ ] **Phase 10: Quality of Life** - Search, filter, archive, keyboard shortcuts
@@ -114,7 +114,7 @@ Plans:
   3. User can click the card and see the "Tekoäly-loki" tab with the full conversation
   4. User can pause a running pipeline and retry a failed one from the modal
   5. The board auto-refreshes to show card movements without manual page reload
-**Plans:** 1/2 plans complete
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 07-01-PLAN.md -- Card type selector in AddCardForm, PipelineIndicator on card face, Board polling
 - [ ] 07-02-PLAN.md -- Tabbed CardModal with Tekoaly-loki log viewer and pipeline control buttons
@@ -165,7 +165,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 4. Drag and Drop | 1/1 | Complete | 2026-02-28 |
 | 5. AI Pipeline Foundation | 2/2 | Complete | 2026-02-28 |
 | 6. Pipeline Execution | 2/2 | Complete | 2026-02-28 |
-| 7. Pipeline UI | 1/2 | In progress | - |
+| 7. Pipeline UI | 2/2 | Complete   | 2026-02-28 |
 | 8. Polish | 0/? | Not started | - |
 | 9. Deployment | 0/? | Not started | - |
 | 10. Quality of Life | 0/? | Not started | - |

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-last_updated: "2026-02-28T20:58:55Z"
+last_updated: "2026-02-28T21:00:00Z"
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 9
-  completed_plans: 9
+  completed_phases: 7
+  total_plans: 10
+  completed_plans: 10
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** One place to capture ideas and track them through to completion — from idea to done, visually and with drag & drop.
-**Current focus:** Phase 7 - Pipeline UI (Plan 1 complete)
+**Current focus:** Phase 7 - Pipeline UI (Plan 2 complete — Phase Complete)
 
 ## Current Position
 
 Phase: 7 of 7 (Pipeline UI)
-Plan: 1 of 1 in current phase (Plan 01 complete)
-Status: Phase 7 in progress — Plan 01 complete
-Last activity: 2026-02-28 — Phase 7 Plan 1 executed: Card type dropdown in Idea column, PipelineIndicator spinner/badge, Board 5s auto-polling
+Plan: 2 of 2 in current phase (Plan 02 complete)
+Status: Phase 7 complete — All plans done
+Last activity: 2026-02-28 — Phase 7 Plan 2 executed: Tabbed CardModal with Tekoaly-loki AI conversation log, PipelineActions pause/retry/start buttons, PipelineLog conversation rendering
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 3.7 min
-- Total execution time: ~0.55 hours
+- Total execution time: ~0.62 hours
 
 **By Phase:**
 
@@ -46,7 +46,7 @@ Progress: [██████████] 100%
 | 4. Drag and Drop | 1/1 | 2 min | 2 min |
 | 5. AI Pipeline Foundation | 2/2 | 5 min | 2.5 min |
 | 6. Pipeline Execution | 2/2 | 4 min | 2 min |
-| 7. Pipeline UI | 1/1 | 2 min | 2 min |
+| 7. Pipeline UI | 2/2 | 5 min | 2.5 min |
 
 **Recent Trend:**
 - Last 5 plans: 6min, 2min, 3min, 2min, 2min
@@ -59,6 +59,7 @@ Progress: [██████████] 100%
 | Phase 06-pipeline-execution P01 | 2 | 2 tasks | 5 files |
 | Phase 06-pipeline-execution P02 | 2 | 2 tasks | 3 files |
 | Phase 07-pipeline-ui P01 | 2 | 2 tasks | 8 files |
+| Phase 07-pipeline-ui P02 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,9 @@ Recent decisions affecting current work:
 - [Phase 07-01]: Polling useEffect depends on [columns, router] — re-runs on every server refresh, stops automatically when no active pipelines remain
 - [Phase 07-01]: PipelineIndicator returns null for IDLE — zero DOM cost for non-pipeline cards
 - [Phase 07-01]: cardType defaults to GENERAL in createTask — schema validates enum but permits omission from non-Idea columns
+- [Phase 07-02]: onStatusChange calls router.refresh() for immediate feedback after pause/start; Board polling handles background sync
+- [Phase 07-02]: Tab resets to 'kortti' in same useEffect as confirmDelete reset — single effect for all card-change resets
+- [Phase 07-02]: IDLE cards show no tabs — original single-form layout fully preserved; tab UI only appears for non-IDLE pipeline status
 
 ### Pending Todos
 
@@ -117,5 +121,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 07-01-PLAN.md (Pipeline UI). Plan 01 complete. Card type dropdown in Idea column, PipelineIndicator spinner/badge on card faces, Board 5s auto-polling implemented.
+Stopped at: Completed 07-02-PLAN.md (Pipeline UI). Plan 02 complete. Tabbed CardModal with Tekoaly-loki AI conversation log, PipelineActions pause/retry/start, PipelineLog with fi-FI timestamps. Phase 7 complete.
 Resume file: None

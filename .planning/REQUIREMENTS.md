@@ -44,8 +44,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AI-03**: AI verifies/tests the output and moves card to Valmis when complete
 - [x] **AI-04**: User can select card type (Koodiprojekti, Tutkimus, Liiketoiminta, Yleinen) when creating a card
 - [x] **AI-05**: User can see AI pipeline status (spinner, stage progress) on each card
-- [ ] **AI-06**: User can view AI conversation log in card modal (Tekoäly-loki tab)
-- [ ] **AI-07**: User can pause a running pipeline and retry a failed one
+- [x] **AI-06**: User can view AI conversation log in card modal (Tekoäly-loki tab)
+- [x] **AI-07**: User can pause a running pipeline and retry a failed one
 - [x] **AI-08**: AI conversation history and artifacts persist in database
 
 ### Search & Navigation
@@ -114,8 +114,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AI-03 | Phase 6 | Complete |
 | AI-04 | Phase 7 | Complete |
 | AI-05 | Phase 7 | Complete |
-| AI-06 | Phase 7 | Pending |
-| AI-07 | Phase 7 | Pending |
+| AI-06 | Phase 7 | Complete |
+| AI-07 | Phase 7 | Complete |
 | AI-08 | Phase 5 | Complete |
 | DATA-02 | Phase 9 | Pending |
 | SRCH-01 | Phase 10 | Pending |
