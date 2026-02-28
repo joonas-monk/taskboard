@@ -20,3 +20,65 @@ Luo selkeä ja toteuttamiskelpoinen suunnitelma tälle tehtävälle. Suunnitelma
 
 Vastaa suomeksi. Ole tiivis mutta kattava. Älä lisää ylimääräisiä otsikoita tai johdantotekstiä — aloita suoraan suunnitelmalla.`
 }
+
+/**
+ * Build an execution prompt for CODE cards.
+ * Instructs Claude to implement the plan using available tools,
+ * create files in the working directory, and summarize what was done.
+ */
+export function buildExecutionPrompt(title: string, planText: string): string {
+  return `Olet koodisuorittaja. Sinulle on annettu tehtävä ja suunnitelma sen toteuttamiseksi.
+
+Tehtävä: ${title}
+
+Suunnitelma:
+${planText}
+
+Toteuta suunnitelma käyttäen saatavillasi olevia työkaluja. Luo tarvittavat tiedostot työhakemistoon.
+Kun olet valmis, kirjoita lyhyt yhteenveto siitä mitä teit ja mitä tiedostoja loit.`
+}
+
+/**
+ * Build an execution prompt for RESEARCH/BUSINESS/GENERAL cards.
+ * No file operations — asks Claude to execute the task in text
+ * and produce a comprehensive result.
+ */
+export function buildExecutionPromptApi(title: string, planText: string): string {
+  return `Olet tehtävien suorittaja. Sinulle on annettu tehtävä ja suunnitelma.
+
+Tehtävä: ${title}
+
+Suunnitelma:
+${planText}
+
+Suorita tämä tehtävä suunnitelman mukaisesti. Tuota kattava, laadukas tulos.
+Vastaa suomeksi.`
+}
+
+/**
+ * Build a testing/quality-assurance prompt for all card types.
+ * Asks Claude to evaluate whether the execution result meets the
+ * acceptance criteria from the plan. Must begin with HYVÄKSYTTY or HYLÄTTY.
+ */
+export function buildTestingPrompt(
+  title: string,
+  planText: string,
+  executionResult: string,
+): string {
+  return `Olet laadunvarmistaja. Arvioi, onko tehtävä suoritettu hyväksymiskriteerien mukaisesti.
+
+Tehtävä: ${title}
+
+Alkuperäinen suunnitelma ja hyväksymiskriteerit:
+${planText}
+
+Suorituksen tulos:
+${executionResult}
+
+Arvioi:
+1. Onko kaikki hyväksymiskriteerit täytetty?
+2. Onko lopputulos laadukas?
+3. Mikä on yhteenvetosi: HYVÄKSYTTY tai HYLÄTTY?
+
+Vastaa suomeksi. Aloita yhteenvedolla (HYVÄKSYTTY/HYLÄTTY), sitten perustele.`
+}
