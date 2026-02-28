@@ -13,10 +13,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Card Management
 
-- [ ] **CARD-01**: User can create a new card with title in any column
-- [ ] **CARD-02**: User can open a card in a modal to edit title, description, priority, due date, and labels
-- [ ] **CARD-03**: User can delete a card with a confirmation dialog
-- [ ] **CARD-04**: User can write a description in plain text with markdown rendering
+- [x] **CARD-01**: User can create a new card with title in any column
+- [x] **CARD-02**: User can open a card in a modal to edit title, description, priority, due date, and labels
+- [x] **CARD-03**: User can delete a card with a confirmation dialog
+- [x] **CARD-04**: User can write a description in plain text with markdown rendering
 - [ ] **CARD-05**: User can archive a card (soft-delete) instead of permanent deletion
 - [ ] **CARD-06**: User can view archived cards
 
@@ -85,10 +85,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | BOARD-01 | Phase 2 | Complete |
-| CARD-01 | Phase 3 | Pending |
-| CARD-02 | Phase 3 | Pending |
-| CARD-03 | Phase 3 | Pending |
-| CARD-04 | Phase 3 | Pending |
+| CARD-01 | Phase 3 | Complete |
+| CARD-02 | Phase 3 | Complete |
+| CARD-03 | Phase 3 | Complete |
+| CARD-04 | Phase 3 | Complete |
 | CARD-05 | Phase 6 | Pending |
 | CARD-06 | Phase 6 | Pending |
 | DND-01 | Phase 4 | Pending |
@@ -110,4 +110,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 after Phase 1 completion — DATA-01 complete*
+*Last updated: 2026-02-28 after Phase 3 completion — CARD-01, CARD-02, CARD-03, CARD-04 complete*
