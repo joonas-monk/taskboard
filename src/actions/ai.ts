@@ -42,6 +42,18 @@ export async function startPipeline(
       return { success: false, error: 'Pipeline on jo käynnissä tai valmis' }
     }
 
+    // Check for any other actively running pipeline (SQLite concurrent-write safety)
+    const activePipeline = await prisma.card.findFirst({
+      where: {
+        pipelineStatus: { in: ['QUEUED', 'PLANNING', 'EXECUTING', 'TESTING'] },
+      },
+      select: { id: true },
+    })
+
+    if (activePipeline) {
+      return { success: false, error: 'Toinen pipeline on jo käynnissä. Odota sen valmistumista.' }
+    }
+
     // Validate required env var
     if (!process.env.ANTHROPIC_API_KEY) {
       return { success: false, error: 'ANTHROPIC_API_KEY puuttuu palvelimen ympäristömuuttujista' }
