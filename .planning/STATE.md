@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-02-28T21:08:16.246Z"
+status: in_progress
+last_updated: "2026-03-01T07:51:35Z"
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 10
-  completed_plans: 10
+  total_phases: 8
+  completed_phases: 8
+  total_plans: 12
+  completed_plans: 12
 ---
 
 # Project State
@@ -18,14 +18,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** One place to capture ideas and track them through to completion — from idea to done, visually and with drag & drop.
-**Current focus:** Phase 7 - Pipeline UI (Plan 2 complete — Phase Complete)
+**Current focus:** Phase 8 - Polish (Complete)
 
 ## Current Position
 
-Phase: 7 of 7 (Pipeline UI)
+Phase: 8 of 8 (Polish)
 Plan: 2 of 2 in current phase (Plan 02 complete)
-Status: Phase 7 complete — All plans done
-Last activity: 2026-02-28 — Phase 7 Plan 2 executed: Tabbed CardModal with Tekoaly-loki AI conversation log, PipelineActions pause/retry/start buttons, PipelineLog conversation rendering
+Status: Phase 8 complete — All plans done
+Last activity: 2026-03-01 — Phase 8 Plan 2 executed: withRetry exponential backoff wrapper for Anthropic API 429 errors; Finnish UI text audit confirmed
 
 Progress: [██████████] 100%
 
@@ -47,12 +47,15 @@ Progress: [██████████] 100%
 | 5. AI Pipeline Foundation | 2/2 | 5 min | 2.5 min |
 | 6. Pipeline Execution | 2/2 | 4 min | 2 min |
 | 7. Pipeline UI | 2/2 | 5 min | 2.5 min |
+| 8. Polish | 2/2 | 3 min | 1.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 6min, 2min, 3min, 2min, 2min
+- Last 5 plans: 2min, 3min, 2min, 2min, 1min
 - Trend: fast
 
 *Updated after each plan completion*
+| Phase 08-polish P02 | 2 | 2 tasks | 1 file |
+| Phase 08-polish P01 | 1 | 2 tasks | 2 files |
 | Phase 04-drag-and-drop P01 | 2 | 2 tasks | 4 files |
 | Phase 05-ai-pipeline-foundation P01 | 3 | 2 tasks | 7 files |
 | Phase 05-ai-pipeline-foundation P02 | 2 | 2 tasks | 5 files |
@@ -106,6 +109,12 @@ Recent decisions affecting current work:
 - [Phase 07-02]: onStatusChange calls router.refresh() for immediate feedback after pause/start; Board polling handles background sync
 - [Phase 07-02]: Tab resets to 'kortti' in same useEffect as confirmDelete reset — single effect for all card-change resets
 - [Phase 07-02]: IDLE cards show no tabs — original single-form layout fully preserved; tab UI only appears for non-IDLE pipeline status
+- [Phase 08-01]: Concurrent guard uses check-then-set without transaction lock — safe for single-user SQLite, no real race conditions
+- [Phase 08-01]: Stale recovery uses individual card updates (not updateMany) to also update associated PipelineRun per card
+- [Phase 08-01]: Stale recovery IIFE errors are caught and logged, never blocking server start
+- [Phase 08-02]: withRetry uses duck-typed status check (err != null && typeof err === 'object' && 'status' in err) rather than instanceof Anthropic.APIError — avoids tight SDK coupling
+- [Phase 08-02]: runExecutionStage (Agent SDK query()) excluded from withRetry — query() manages its own error handling internally
+- [Phase 08-02]: baseDelayMs=2000 with factor 4 produces 2s/8s/32s sequence — matches Anthropic typical rate limit reset window
 
 ### Pending Todos
 
@@ -120,6 +129,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-28
-Stopped at: Completed 07-02-PLAN.md (Pipeline UI). Plan 02 complete. Tabbed CardModal with Tekoaly-loki AI conversation log, PipelineActions pause/retry/start, PipelineLog with fi-FI timestamps. Phase 7 complete.
+Last session: 2026-03-01
+Stopped at: Completed 08-02-PLAN.md (Polish). Plan 02 complete. withRetry exponential backoff for Anthropic API 429 errors; Finnish UI audit confirmed. Phase 8 complete. ALL PHASES DONE.
 Resume file: None
