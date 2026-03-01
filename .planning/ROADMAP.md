@@ -128,7 +128,10 @@ Plans:
   2. Stale pipelines (from crashed worker) are detected on server start and reset to FAILED
   3. API rate limit errors trigger exponential backoff retry (3 attempts)
   4. All new UI text is in Finnish
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 08-01-PLAN.md -- Concurrent pipeline guard in startPipeline, stale pipeline recovery on server start
+- [ ] 08-02-PLAN.md -- Exponential backoff retry for API rate limits, Finnish text audit
 
 ### Phase 9: Deployment
 **Goal**: The application is accessible via browser at the user's domain with SSL, running reliably on the Hostinger VPS, with card data safe across redeploys
@@ -166,6 +169,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 5. AI Pipeline Foundation | 2/2 | Complete | 2026-02-28 |
 | 6. Pipeline Execution | 2/2 | Complete | 2026-02-28 |
 | 7. Pipeline UI | 2/2 | Complete   | 2026-02-28 |
-| 8. Polish | 0/? | Not started | - |
+| 8. Polish | 0/2 | Not started | - |
 | 9. Deployment | 0/? | Not started | - |
 | 10. Quality of Life | 0/? | Not started | - |
