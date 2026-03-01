@@ -6,6 +6,7 @@
 // Creates its own PrismaClient (separate OS process — cannot share Next.js singleton).
 
 import { PrismaClient } from '@/generated/prisma/client'
+import { PipelineStatus } from '@/generated/prisma/enums'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import {
   runPlanningStage,
@@ -68,7 +69,7 @@ async function advanceToStage(
   runId: string,
   id: string,
   newStage: string,
-  newStatus: string,
+  newStatus: PipelineStatus,
   columnId: string,
   position: number,
 ): Promise<void> {
@@ -79,7 +80,7 @@ async function advanceToStage(
     }),
     prisma.card.update({
       where: { id },
-      data: { columnId, position, pipelineStatus: newStatus as never },
+      data: { columnId, position, pipelineStatus: newStatus },
     }),
   ])
 }
