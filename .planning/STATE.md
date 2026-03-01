@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-03-01T07:59:26.841Z"
+status: in_progress
+last_updated: "2026-03-01T10:16:00.000Z"
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 8
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 14
+  completed_plans: 13
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** One place to capture ideas and track them through to completion — from idea to done, visually and with drag & drop.
-**Current focus:** Phase 8 - Polish (Complete)
+**Current focus:** Phase 9 - Deployment (In Progress)
 
 ## Current Position
 
-Phase: 8 of 8 (Polish)
-Plan: 2 of 2 in current phase (Plan 02 complete)
-Status: Phase 8 complete — All plans done
-Last activity: 2026-03-01 — Phase 8 Plan 2 executed: withRetry exponential backoff wrapper for Anthropic API 429 errors; Finnish UI text audit confirmed
+Phase: 9 of 9 (Deployment)
+Plan: 1 of 2 in current phase (Plan 01 complete)
+Status: Phase 9 in progress — Plan 01 done, Plan 02 pending
+Last activity: 2026-03-01 — Phase 9 Plan 1 executed: standalone config, PM2 ecosystem, deploy script, Nginx reverse proxy template
 
-Progress: [██████████] 100%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
@@ -48,12 +48,14 @@ Progress: [██████████] 100%
 | 6. Pipeline Execution | 2/2 | 4 min | 2 min |
 | 7. Pipeline UI | 2/2 | 5 min | 2.5 min |
 | 8. Polish | 2/2 | 3 min | 1.5 min |
+| 9. Deployment | 1/2 | 1 min | 1 min |
 
 **Recent Trend:**
-- Last 5 plans: 2min, 3min, 2min, 2min, 1min
+- Last 5 plans: 3min, 2min, 2min, 1min, 1min
 - Trend: fast
 
 *Updated after each plan completion*
+| Phase 09-deployment P01 | 1 | 2 tasks | 6 files |
 | Phase 08-polish P02 | 2 | 2 tasks | 1 file |
 | Phase 08-polish P01 | 1 | 2 tasks | 2 files |
 | Phase 04-drag-and-drop P01 | 2 | 2 tasks | 4 files |
@@ -115,6 +117,10 @@ Recent decisions affecting current work:
 - [Phase 08-02]: withRetry uses duck-typed status check (err != null && typeof err === 'object' && 'status' in err) rather than instanceof Anthropic.APIError — avoids tight SDK coupling
 - [Phase 08-02]: runExecutionStage (Agent SDK query()) excluded from withRetry — query() manages its own error handling internally
 - [Phase 08-02]: baseDelayMs=2000 with factor 4 produces 2s/8s/32s sequence — matches Anthropic typical rate limit reset window
+- [Phase 09-01]: PM2 fork mode (not cluster) required for SQLite — better-sqlite3 is not concurrency-safe across processes
+- [Phase 09-01]: ecosystem.config.js loads .env.production via require('dotenv').config() — more reliable than PM2 env_file option across PM2 versions
+- [Phase 09-01]: PM2 cwd set to project root not .next/standalone — pipeline worker resolves tsx from process.cwd()
+- [Phase 09-01]: nginx proxy_read_timeout 300s — AI pipeline Server Actions can take 30-120 seconds, default 60s causes 504
 
 ### Pending Todos
 
@@ -130,5 +136,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 08-02-PLAN.md (Polish). Plan 02 complete. withRetry exponential backoff for Anthropic API 429 errors; Finnish UI audit confirmed. Phase 8 complete. ALL PHASES DONE.
+Stopped at: Completed 09-01-PLAN.md (Deployment). Plan 01 complete. Next.js standalone config, PM2 fork-mode ecosystem, deploy.sh, nginx/taskboard.conf, .env.example created. Plan 02 (VPS setup) is next.
 Resume file: None

@@ -144,7 +144,7 @@ Plans:
   4. Port 3000 is not directly accessible from the internet — all traffic routes through Nginx
 **Plans**: 2 plans
 Plans:
-- [ ] 09-01-PLAN.md -- Deployment config files: next.config.ts standalone, PM2 ecosystem, deploy script, Nginx template, .env.example
+- [x] 09-01-PLAN.md -- Deployment config files: next.config.ts standalone, PM2 ecosystem, deploy script, Nginx template, .env.example
 - [ ] 09-02-PLAN.md -- VPS initial setup (human-action) and deployment verification (human-verify)
 
 ### Phase 10: Quality of Life
@@ -173,5 +173,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 6. Pipeline Execution | 2/2 | Complete | 2026-02-28 |
 | 7. Pipeline UI | 2/2 | Complete   | 2026-02-28 |
 | 8. Polish | 2/2 | Complete   | 2026-03-01 |
-| 9. Deployment | 0/2 | Planned | - |
+| 9. Deployment | 1/2 | In Progress | - |
 | 10. Quality of Life | 0/? | Not started | - |
