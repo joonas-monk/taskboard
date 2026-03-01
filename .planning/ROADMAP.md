@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 5: AI Pipeline Foundation** - Database schema, Anthropic SDK, background worker, planning stage
 - [ ] **Phase 6: Pipeline Execution** - Full pipeline end-to-end, Claude Code CLI for code projects
 - [x] **Phase 7: Pipeline UI** - Status indicators, log viewer, pipeline controls, card type selector (completed 2026-02-28)
-- [ ] **Phase 8: Polish** - Robustness, edge cases, concurrent pipeline prevention, stale recovery
+- [x] **Phase 8: Polish** - Robustness, edge cases, concurrent pipeline prevention, stale recovery (completed 2026-03-01)
 - [ ] **Phase 9: Deployment** - VPS deployment with Nginx, PM2, SSL, and data persistence hardening
 - [ ] **Phase 10: Quality of Life** - Search, filter, archive, keyboard shortcuts
 
@@ -169,6 +169,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 5. AI Pipeline Foundation | 2/2 | Complete | 2026-02-28 |
 | 6. Pipeline Execution | 2/2 | Complete | 2026-02-28 |
 | 7. Pipeline UI | 2/2 | Complete   | 2026-02-28 |
-| 8. Polish | 0/2 | Not started | - |
+| 8. Polish | 2/2 | Complete   | 2026-03-01 |
 | 9. Deployment | 0/? | Not started | - |
 | 10. Quality of Life | 0/? | Not started | - |
