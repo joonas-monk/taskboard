@@ -142,7 +142,10 @@ Plans:
   2. Card data created before a redeploy still exists after the redeploy
   3. The application restarts automatically if the VPS reboots (PM2 startup script configured)
   4. Port 3000 is not directly accessible from the internet — all traffic routes through Nginx
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 09-01-PLAN.md -- Deployment config files: next.config.ts standalone, PM2 ecosystem, deploy script, Nginx template, .env.example
+- [ ] 09-02-PLAN.md -- VPS initial setup (human-action) and deployment verification (human-verify)
 
 ### Phase 10: Quality of Life
 **Goal**: Users can efficiently navigate a growing board with search, filters, archive, and keyboard shortcuts
@@ -158,7 +161,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -170,5 +173,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. Pipeline Execution | 2/2 | Complete | 2026-02-28 |
 | 7. Pipeline UI | 2/2 | Complete   | 2026-02-28 |
 | 8. Polish | 2/2 | Complete   | 2026-03-01 |
-| 9. Deployment | 0/? | Not started | - |
+| 9. Deployment | 0/2 | Planned | - |
 | 10. Quality of Life | 0/? | Not started | - |
