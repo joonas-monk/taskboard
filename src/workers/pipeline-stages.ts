@@ -11,6 +11,39 @@ import {
 const PIPELINE_MODEL = process.env.PIPELINE_MODEL ?? 'claude-3-5-haiku-20241022'
 
 /**
+ * Retry an async function with exponential backoff on rate limit (429) errors.
+ * Retries up to maxAttempts times with delays: 2s, 8s, 32s (base * 4^attempt).
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts = 3,
+  baseDelayMs = 2000,
+): Promise<T> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      return await fn()
+    } catch (err: unknown) {
+      const isRateLimit =
+        err != null &&
+        typeof err === 'object' &&
+        'status' in err &&
+        (err as { status: number }).status === 429
+
+      if (!isRateLimit || attempt === maxAttempts - 1) {
+        throw err
+      }
+
+      const delay = baseDelayMs * Math.pow(4, attempt)
+      console.log(
+        `[Pipeline] API-rajoitus (429), odotetaan ${delay / 1000}s ennen uudelleenyritystä (${attempt + 1}/${maxAttempts})...`
+      )
+      await new Promise((resolve) => setTimeout(resolve, delay))
+    }
+  }
+  throw new Error('Uudelleenyritykset loppuivat') // unreachable but satisfies TS
+}
+
+/**
  * Run the planning stage for a card.
  * Calls the Anthropic API with the card's title and description.
  * Returns the plan text.
@@ -26,16 +59,18 @@ export async function runPlanningStage(card: {
 
   const userPrompt = buildPlanningPrompt(card.title, card.description)
 
-  const response = await anthropic.messages.create({
-    model: PIPELINE_MODEL,
-    max_tokens: 4096,
-    messages: [
-      {
-        role: 'user',
-        content: userPrompt,
-      },
-    ],
-  })
+  const response = await withRetry(() =>
+    anthropic.messages.create({
+      model: PIPELINE_MODEL,
+      max_tokens: 4096,
+      messages: [
+        {
+          role: 'user',
+          content: userPrompt,
+        },
+      ],
+    })
+  )
 
   // Extract text from response content array
   const textBlock = response.content.find((b) => b.type === 'text')
@@ -106,16 +141,18 @@ export async function runExecutionStage(
 export async function runExecutionStageApi(card: { title: string }, planText: string): Promise<string> {
   const anthropic = new Anthropic()
 
-  const response = await anthropic.messages.create({
-    model: PIPELINE_MODEL,
-    max_tokens: 8096,
-    messages: [
-      {
-        role: 'user',
-        content: buildExecutionPromptApi(card.title, planText),
-      },
-    ],
-  })
+  const response = await withRetry(() =>
+    anthropic.messages.create({
+      model: PIPELINE_MODEL,
+      max_tokens: 8096,
+      messages: [
+        {
+          role: 'user',
+          content: buildExecutionPromptApi(card.title, planText),
+        },
+      ],
+    })
+  )
 
   const textBlock = response.content.find((b) => b.type === 'text')
   if (!textBlock || textBlock.type !== 'text') {
@@ -140,16 +177,18 @@ export async function runTestingStage(
 ): Promise<string> {
   const anthropic = new Anthropic()
 
-  const response = await anthropic.messages.create({
-    model: PIPELINE_MODEL,
-    max_tokens: 4096,
-    messages: [
-      {
-        role: 'user',
-        content: buildTestingPrompt(card.title, planText, executionResult),
-      },
-    ],
-  })
+  const response = await withRetry(() =>
+    anthropic.messages.create({
+      model: PIPELINE_MODEL,
+      max_tokens: 4096,
+      messages: [
+        {
+          role: 'user',
+          content: buildTestingPrompt(card.title, planText, executionResult),
+        },
+      ],
+    })
+  )
 
   const textBlock = response.content.find((b) => b.type === 'text')
   if (!textBlock || textBlock.type !== 'text') {
