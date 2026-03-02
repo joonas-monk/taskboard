@@ -5,4 +5,4 @@ import Anthropic from '@anthropic-ai/sdk'
 export const anthropic = new Anthropic()
 
 // Default model for pipeline stages — overridable via PIPELINE_MODEL env var.
-export const PIPELINE_MODEL = process.env.PIPELINE_MODEL ?? 'claude-3-5-haiku-20241022'
+export const PIPELINE_MODEL = process.env.PIPELINE_MODEL ?? 'claude-haiku-4-5-20251001'

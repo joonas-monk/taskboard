@@ -78,7 +78,7 @@ export async function startPipeline(
       env: {
         DATABASE_URL: process.env.DATABASE_URL!,
         ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
-        PIPELINE_MODEL: process.env.PIPELINE_MODEL ?? 'claude-3-5-haiku-20241022',
+        PIPELINE_MODEL: process.env.PIPELINE_MODEL ?? 'claude-haiku-4-5-20251001',
         NODE_ENV: process.env.NODE_ENV ?? 'production',
         PATH: process.env.PATH,
         HOME: process.env.HOME,

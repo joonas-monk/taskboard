@@ -8,7 +8,7 @@ import {
   buildTestingPrompt,
 } from './prompts'
 
-const PIPELINE_MODEL = process.env.PIPELINE_MODEL ?? 'claude-3-5-haiku-20241022'
+const PIPELINE_MODEL = process.env.PIPELINE_MODEL ?? 'claude-haiku-4-5-20251001'
 
 /**
  * Retry an async function with exponential backoff on rate limit (429) errors.

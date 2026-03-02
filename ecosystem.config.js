@@ -20,7 +20,7 @@ module.exports = {
       HOSTNAME: '127.0.0.1',
       DATABASE_URL: process.env.DATABASE_URL,
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-      PIPELINE_MODEL: process.env.PIPELINE_MODEL || 'claude-3-5-haiku-20241022',
+      PIPELINE_MODEL: process.env.PIPELINE_MODEL || 'claude-haiku-4-5-20251001',
       HOME: process.env.HOME || '/home/deploy',
       PATH: process.env.PATH,
       APP_ROOT: '/home/deploy/taskboard',
