@@ -85,13 +85,13 @@ export function AddCardForm({ columnId, lastPosition, onOptimisticAdd, isIdeaCol
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           disabled={isPending}
-          className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full rounded border border-slate-300 bg-white text-slate-900 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         {isIdeaColumn && (
           <select
             value={cardType}
             onChange={(e) => setCardType(e.target.value as 'CODE' | 'RESEARCH' | 'BUSINESS' | 'GENERAL')}
-            className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full rounded border border-slate-300 bg-white text-slate-900 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <option value="GENERAL">Yleinen</option>
             <option value="CODE">Koodiprojekti</option>
