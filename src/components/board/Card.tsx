@@ -15,7 +15,7 @@ interface Props {
 
 export default function Card({ card, onClick }: Props) {
   const isOptimistic = card.id.startsWith('optimistic-')
-  const isPipelineActive = ['QUEUED', 'PLANNING', 'EXECUTING', 'TESTING', 'AWAITING_APPROVAL'].includes(card.pipelineStatus)
+  const isPipelineActive = ['QUEUED', 'PLANNING', 'EXECUTING', 'TESTING', 'AWAITING_APPROVAL', 'AWAITING_EXEC_REVIEW', 'TEST_FAILED'].includes(card.pipelineStatus)
 
   const {
     attributes,

@@ -27,7 +27,9 @@ enum PipelineStatus {
   PLANNING
   AWAITING_APPROVAL
   EXECUTING
+  AWAITING_EXEC_REVIEW
   TESTING
+  TEST_FAILED
   COMPLETED
   FAILED
   PAUSED
@@ -82,6 +84,8 @@ model PipelineRun {
   stage     String
   status    PipelineStatus
   error     String?
+  attempt   Int            @default(1)
+  verdict   String?
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 

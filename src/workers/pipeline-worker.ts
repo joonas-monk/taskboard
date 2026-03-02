@@ -35,6 +35,8 @@ if (!cardId) {
 const adapter = new PrismaBetterSqlite3({ url: connectionString })
 const prisma = new PrismaClient({ adapter })
 
+const MAX_ATTEMPTS = 5
+
 // --- Helpers ---
 
 /**
@@ -85,6 +87,29 @@ async function advanceToStage(
   ])
 }
 
+/**
+ * Load messages from a pipeline run by artifact type.
+ */
+async function loadMessage(runId: string, artifactType: string): Promise<string | undefined> {
+  const msg = await prisma.pipelineMessage.findFirst({
+    where: { pipelineRunId: runId, artifactType },
+    select: { content: true },
+  })
+  return msg?.content
+}
+
+/**
+ * Load user feedback message (stored with artifactType 'user_feedback').
+ */
+async function loadUserFeedback(runId: string): Promise<string | undefined> {
+  const msg = await prisma.pipelineMessage.findFirst({
+    where: { pipelineRunId: runId, artifactType: 'user_feedback' },
+    orderBy: { createdAt: 'desc' },
+    select: { content: true },
+  })
+  return msg?.content
+}
+
 // --- Main ---
 
 async function main() {
@@ -106,8 +131,9 @@ async function main() {
       throw new Error(`Card not found: ${cardId}`)
     }
 
-    if (card.pipelineStatus !== 'QUEUED' && card.pipelineStatus !== 'AWAITING_APPROVAL') {
-      throw new Error(`Card is not QUEUED or AWAITING_APPROVAL (current: ${card.pipelineStatus})`)
+    const validStatuses = ['QUEUED', 'AWAITING_APPROVAL', 'AWAITING_EXEC_REVIEW', 'TEST_FAILED']
+    if (!validStatuses.includes(card.pipelineStatus)) {
+      throw new Error(`Card status not valid for worker (current: ${card.pipelineStatus})`)
     }
 
     // 2. Load all column IDs (needed for column moves)
@@ -123,7 +149,7 @@ async function main() {
       throw new Error('Yksi tai useampi vaadittu sarake puuttuu (Suunnittelu/Toteutus/Testaus/Valmis)')
     }
 
-    // 3. Determine resume point (retry from failed stage)
+    // 3. Determine resume point
     const latestRun = await prisma.pipelineRun.findFirst({
       where: { cardId: card.id },
       orderBy: { createdAt: 'desc' },
@@ -133,40 +159,59 @@ async function main() {
     let startStage: StartStage = 'PLANNING'
     let planText: string | undefined
     let execResult: string | undefined
+    let attempt = 1
+    let retryContext: { previousPlan: string; testFeedback: string; userFeedback?: string; attempt: number } | undefined
 
-    if (latestRun?.status === 'FAILED' || latestRun?.status === 'AWAITING_APPROVAL') {
-      if (latestRun.status === 'AWAITING_APPROVAL' || latestRun.stage === 'EXECUTING') {
-        // Load planText from previous run
-        const planMsg = await prisma.pipelineMessage.findFirst({
-          where: { pipelineRunId: latestRun.id, artifactType: 'plan' },
-          select: { content: true },
-        })
-        if (planMsg) {
-          planText = planMsg.content
-          startStage = 'EXECUTING'
+    if (latestRun) {
+      const status = latestRun.status
+
+      if (status === 'AWAITING_APPROVAL') {
+        // Resume after plan approval → EXECUTING
+        planText = await loadMessage(latestRun.id, 'plan')
+        if (planText) startStage = 'EXECUTING'
+        attempt = latestRun.attempt
+
+      } else if (status === 'AWAITING_EXEC_REVIEW') {
+        // Resume after execution review → TESTING
+        planText = await loadMessage(latestRun.id, 'plan')
+        execResult = await loadMessage(latestRun.id, 'code') ?? await loadMessage(latestRun.id, 'execution')
+        if (planText && execResult) startStage = 'TESTING'
+        attempt = latestRun.attempt
+
+      } else if (status === 'TEST_FAILED') {
+        // Loop back: test failed → re-plan with context
+        const prevPlan = await loadMessage(latestRun.id, 'plan')
+        const testReport = await loadMessage(latestRun.id, 'test_report')
+        const userFb = await loadUserFeedback(latestRun.id)
+        attempt = latestRun.attempt + 1
+
+        if (attempt > MAX_ATTEMPTS) {
+          throw new Error(`Maksimi-iteraatiot (${MAX_ATTEMPTS}) saavutettu. Pipeline pysäytetty.`)
         }
-      } else if (latestRun.stage === 'TESTING') {
-        // Load planText and execResult from previous run
-        const planMsg = await prisma.pipelineMessage.findFirst({
-          where: { pipelineRunId: latestRun.id, artifactType: 'plan' },
-          select: { content: true },
-        })
-        const execMsg = await prisma.pipelineMessage.findFirst({
-          where: {
-            pipelineRunId: latestRun.id,
-            artifactType: { in: ['code', 'execution'] },
-          },
-          select: { content: true },
-        })
-        if (planMsg && execMsg) {
-          planText = planMsg.content
-          execResult = execMsg.content
-          startStage = 'TESTING'
+
+        if (prevPlan && testReport) {
+          retryContext = {
+            previousPlan: prevPlan,
+            testFeedback: testReport,
+            userFeedback: userFb,
+            attempt,
+          }
         }
+        startStage = 'PLANNING'
+
+      } else if (status === 'FAILED') {
+        // Resume from failed stage
+        if (latestRun.stage === 'EXECUTING') {
+          planText = await loadMessage(latestRun.id, 'plan')
+          if (planText) startStage = 'EXECUTING'
+        } else if (latestRun.stage === 'TESTING') {
+          planText = await loadMessage(latestRun.id, 'plan')
+          execResult = await loadMessage(latestRun.id, 'code') ?? await loadMessage(latestRun.id, 'execution')
+          if (planText && execResult) startStage = 'TESTING'
+        }
+        attempt = latestRun.attempt
       }
-      // If PLANNING failed, stay at PLANNING (default)
     }
-    // If no failed run (or no retry data found), start from PLANNING
 
     // 4. Create new PipelineRun for this attempt
     const run = await prisma.pipelineRun.create({
@@ -174,6 +219,7 @@ async function main() {
         cardId: card.id,
         stage: startStage,
         status: startStage,
+        attempt,
       },
     })
 
@@ -184,18 +230,22 @@ async function main() {
       await advanceToStage(run.id, card.id, 'PLANNING', 'PLANNING', suunnitteluId, planPosition)
 
       // Store user prompt
+      const promptSuffix = retryContext
+        ? ` (uudelleensuunnittelu, yritys ${retryContext.attempt})`
+        : ''
       await prisma.pipelineMessage.create({
         data: {
           pipelineRunId: run.id,
           role: 'user',
-          content: `Suunnittele tehtävä: ${card.title}${card.description ? `\n\n${card.description}` : ''}`,
+          content: `Suunnittele tehtävä: ${card.title}${card.description ? `\n\n${card.description}` : ''}${promptSuffix}`,
         },
       })
 
-      // Run planning stage
+      // Run planning stage (with retry context if available)
       planText = await runPlanningStage({
         title: card.title,
         description: card.description,
+        retryContext,
       })
 
       // Store plan result
@@ -284,6 +334,22 @@ async function main() {
       return
     }
 
+    // --- Wait for user review after execution ---
+    if (startStage === 'EXECUTING') {
+      await prisma.$transaction([
+        prisma.pipelineRun.update({
+          where: { id: run.id },
+          data: { status: 'AWAITING_EXEC_REVIEW' },
+        }),
+        prisma.card.update({
+          where: { id: card.id },
+          data: { pipelineStatus: 'AWAITING_EXEC_REVIEW' },
+        }),
+      ])
+      // Worker exits — approveExecution Server Action will spawn a new worker to continue
+      return
+    }
+
     // --- Stage 3: TESTING ---
     // Move card to Testaus column
     const testPosition = await getNextPosition(testausId)
@@ -301,15 +367,38 @@ async function main() {
       },
     })
 
-    // --- Complete: move card to Valmis ---
-    const valmisPosition = await getNextPosition(valmisId)
-    await advanceToStage(run.id, card.id, 'TESTING', 'COMPLETED', valmisId, valmisPosition)
+    // --- Parse test verdict ---
+    const testPassed = testResult.trimStart().toUpperCase().startsWith('HYVÄKSYTTY')
 
-    // Mark PipelineRun as COMPLETED
-    await prisma.pipelineRun.update({
-      where: { id: run.id },
-      data: { status: 'COMPLETED' },
-    })
+    if (testPassed) {
+      // --- Complete: move card to Valmis ---
+      const valmisPosition = await getNextPosition(valmisId)
+      await advanceToStage(run.id, card.id, 'TESTING', 'COMPLETED', valmisId, valmisPosition)
+
+      await prisma.pipelineRun.update({
+        where: { id: run.id },
+        data: { status: 'COMPLETED', verdict: 'HYVÄKSYTTY' },
+      })
+    } else {
+      // --- Test failed: move card back to Suunnittelu, wait for user decision ---
+      const planPosition = await getNextPosition(suunnitteluId)
+
+      await prisma.$transaction([
+        prisma.pipelineRun.update({
+          where: { id: run.id },
+          data: { status: 'TEST_FAILED', verdict: 'HYLÄTTY' },
+        }),
+        prisma.card.update({
+          where: { id: card.id },
+          data: {
+            columnId: suunnitteluId,
+            position: planPosition,
+            pipelineStatus: 'TEST_FAILED',
+          },
+        }),
+      ])
+      // Worker exits — handleTestFailure Server Action will decide next step
+    }
 
   } catch (err) {
     // Set card and run to FAILED with error message

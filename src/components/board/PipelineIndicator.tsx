@@ -5,7 +5,9 @@ const STATUS_LABELS: Record<string, string> = {
   PLANNING: 'Suunnitellaan',
   AWAITING_APPROVAL: 'Odottaa',
   EXECUTING: 'Toteutetaan',
+  AWAITING_EXEC_REVIEW: 'Tarkistus',
   TESTING: 'Testataan',
+  TEST_FAILED: 'Hylatty',
   COMPLETED: 'Valmis',
   FAILED: 'Virhe',
   PAUSED: 'Pysaytetty',
@@ -19,7 +21,9 @@ const STATUS_PROGRESS: Record<string, number> = {
   PLANNING: 0.25,
   AWAITING_APPROVAL: 0.3,
   EXECUTING: 0.6,
+  AWAITING_EXEC_REVIEW: 0.65,
   TESTING: 0.85,
+  TEST_FAILED: 0.85,
   COMPLETED: 1,
   FAILED: 0,
   PAUSED: 0,
@@ -36,11 +40,13 @@ export default function PipelineIndicator({ status }: Props) {
   const label = STATUS_LABELS[status] ?? status
   const progress = STATUS_PROGRESS[status] ?? 0
 
-  const color = isActive || status === 'AWAITING_APPROVAL'
+  const color = isActive
     ? '#007AFF'
+    : status === 'AWAITING_APPROVAL' || status === 'AWAITING_EXEC_REVIEW'
+    ? '#FF9500'
     : status === 'COMPLETED'
     ? '#34C759'
-    : status === 'FAILED'
+    : status === 'FAILED' || status === 'TEST_FAILED'
     ? '#FF3B30'
     : '#8E8E93'
 
@@ -61,6 +67,17 @@ export default function PipelineIndicator({ status }: Props) {
         {status === 'FAILED' && (
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
             <path d="M3 3L9 9M9 3L3 9" stroke="#FF3B30" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        )}
+        {status === 'TEST_FAILED' && (
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
+            <path d="M3 3L9 9M9 3L3 9" stroke="#FF3B30" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        )}
+        {(status === 'AWAITING_APPROVAL' || status === 'AWAITING_EXEC_REVIEW') && (
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
+            <circle cx="6" cy="6" r="4.5" stroke="#FF9500" strokeWidth="1.2"/>
+            <path d="M6 3.5V6.5L8 8" stroke="#FF9500" strokeWidth="1.2" strokeLinecap="round"/>
           </svg>
         )}
         <span className="text-[11px] font-semibold" style={{ color }}>{label}</span>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useTransition } from 'react'
-import { getPipelineStatus, approvePlan, startPipeline, pausePipeline } from '@/actions/ai'
+import { getPipelineStatus, approvePlan, approveExecution, handleTestFailure, startPipeline, pausePipeline } from '@/actions/ai'
 import type { SerializedPipelineRun, SerializedPipelineMessage } from '@/types'
 
 interface Props {
@@ -20,7 +20,9 @@ const STATUS_TO_STAGE_INDEX: Record<string, number> = {
   PLANNING: 1,
   AWAITING_APPROVAL: 1,
   EXECUTING: 2,
+  AWAITING_EXEC_REVIEW: 2,
   TESTING: 3,
+  TEST_FAILED: 3,
   COMPLETED: 4,
   FAILED: -1,
   PAUSED: -1,
@@ -32,7 +34,9 @@ const STATUS_LABELS: Record<string, string> = {
   PLANNING: 'Suunnitellaan...',
   AWAITING_APPROVAL: 'Odottaa hyvaksyntaa',
   EXECUTING: 'Toteutetaan...',
+  AWAITING_EXEC_REVIEW: 'Odottaa tarkistusta',
   TESTING: 'Testataan...',
+  TEST_FAILED: 'Testi hylatty',
   COMPLETED: 'Valmis',
   FAILED: 'Epaonnistui',
   PAUSED: 'Pysaytetty',
@@ -54,14 +58,17 @@ function ProgressStepper({ status, failedStage }: { status: string; failedStage?
   const failedIdx = failedStage ? STATUS_TO_STAGE_INDEX[failedStage] ?? -1 : -1
   const isFailed = status === 'FAILED'
   const isPaused = status === 'PAUSED'
+  const isTestFailed = status === 'TEST_FAILED'
+  const isAwaitingExec = status === 'AWAITING_EXEC_REVIEW'
 
   return (
     <div className="flex items-center gap-0 w-full px-2 py-4">
       {STAGES.map((stage, idx) => {
-        const isCompleted = !isFailed && !isPaused && currentIdx > idx
-        const isActive = currentIdx === idx && !isFailed && !isPaused
-        const isFailedStep = isFailed && failedIdx === idx
+        const isCompleted = !isFailed && !isPaused && !isTestFailed && currentIdx > idx
+        const isActive = currentIdx === idx && !isFailed && !isPaused && !isTestFailed && !isAwaitingExec
+        const isFailedStep = (isFailed && failedIdx === idx) || (isTestFailed && idx === 3)
         const isPausedStep = isPaused && failedIdx === idx
+        const isWaitingStep = (isAwaitingExec && idx === 2) || (status === 'AWAITING_APPROVAL' && idx === 1)
 
         return (
           <div key={stage} className="flex items-center flex-1 last:flex-none">
@@ -75,6 +82,8 @@ function ProgressStepper({ status, failedStage }: { status: string; failedStage?
                     ? 'bg-[#007AFF] text-white shadow-[0_0_0_4px_rgba(0,122,255,0.15)]'
                     : isFailedStep
                     ? 'bg-[#FF3B30] text-white'
+                    : isWaitingStep
+                    ? 'bg-[#FF9500] text-white shadow-[0_0_0_4px_rgba(255,149,0,0.15)]'
                     : isPausedStep
                     ? 'bg-[#FF9500] text-white'
                     : 'bg-gray-200 text-gray-400'
@@ -88,6 +97,11 @@ function ProgressStepper({ status, failedStage }: { status: string; failedStage?
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                     <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
+                ) : isWaitingStep ? (
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M7 4.5V7.5L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
                 ) : (
                   idx + 1
                 )}
@@ -96,6 +110,7 @@ function ProgressStepper({ status, failedStage }: { status: string; failedStage?
                 isCompleted ? 'text-[#34C759]'
                 : isActive ? 'text-[#007AFF]'
                 : isFailedStep ? 'text-[#FF3B30]'
+                : isWaitingStep ? 'text-[#FF9500]'
                 : 'text-gray-400'
               }`}>
                 {stage}
@@ -191,6 +206,183 @@ function PlanReview({
   )
 }
 
+function ExecutionReview({
+  execContent,
+  cardId,
+  onAction,
+}: {
+  execContent: string
+  cardId: string
+  onAction: () => void
+}) {
+  const [showFeedback, setShowFeedback] = useState(false)
+  const [feedback, setFeedback] = useState('')
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  function handleContinue(fb?: string) {
+    setError(null)
+    startTransition(async () => {
+      const result = await approveExecution({
+        cardId,
+        feedback: fb || undefined,
+      })
+      if (!result.success) {
+        setError(result.error)
+      } else {
+        onAction()
+      }
+    })
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-[#FF9500]" />
+        <h3 className="text-[15px] font-semibold text-gray-900">Toteutus odottaa tarkistusta</h3>
+      </div>
+
+      <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 max-h-[300px] overflow-y-auto">
+        <pre className="whitespace-pre-wrap text-[14px] text-gray-800 font-mono leading-relaxed">{execContent}</pre>
+      </div>
+
+      {showFeedback && (
+        <textarea
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          placeholder="Kirjoita palautetta toteutuksesta..."
+          className="w-full rounded-xl border border-gray-200 bg-white text-[14px] text-gray-800 p-4 min-h-[100px] resize-y focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30 focus:border-[#007AFF]"
+        />
+      )}
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => showFeedback ? handleContinue(feedback) : handleContinue()}
+          disabled={isPending}
+          className="bg-[#007AFF] hover:bg-[#0066DD] active:scale-[0.98] text-white px-5 py-2.5 rounded-full text-[14px] font-semibold disabled:opacity-50 transition-all duration-200 shadow-sm"
+        >
+          {isPending ? 'Kaynnistetaan...' : 'Jatka testaukseen'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowFeedback(!showFeedback)}
+          className="text-[#007AFF] hover:text-[#0066DD] active:scale-[0.98] px-4 py-2.5 rounded-full text-[14px] font-medium transition-all duration-200 hover:bg-[#007AFF]/5"
+        >
+          {showFeedback ? 'Piilota palaute' : 'Anna palautetta'}
+        </button>
+      </div>
+      {error && (
+        <div className="rounded-xl bg-[#FF3B30]/5 border border-[#FF3B30]/10 px-4 py-3 text-[13px] text-[#FF3B30]">
+          {error}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function TestFailureView({
+  testReport,
+  attempt,
+  cardId,
+  onAction,
+}: {
+  testReport: string
+  attempt: number
+  cardId: string
+  onAction: () => void
+}) {
+  const MAX_ATTEMPTS = 5
+  const [showFeedback, setShowFeedback] = useState(false)
+  const [feedback, setFeedback] = useState('')
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  function handleAction(action: 'retry' | 'accept' | 'stop', fb?: string) {
+    setError(null)
+    startTransition(async () => {
+      const result = await handleTestFailure({
+        cardId,
+        action,
+        feedback: fb || undefined,
+      })
+      if (!result.success) {
+        setError(result.error)
+      } else {
+        onAction()
+      }
+    })
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-[#FF3B30]" />
+        <h3 className="text-[15px] font-semibold text-gray-900">Testi hylatty</h3>
+        <span className="ml-auto text-[12px] font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
+          Yritys {attempt}/{MAX_ATTEMPTS}
+        </span>
+      </div>
+
+      <div className="rounded-xl bg-[#FF3B30]/5 border border-[#FF3B30]/10 p-4 max-h-[300px] overflow-y-auto">
+        <pre className="whitespace-pre-wrap text-[14px] text-gray-800 font-mono leading-relaxed">{testReport}</pre>
+      </div>
+
+      {showFeedback && (
+        <textarea
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          placeholder="Lisaohjeet uudelleensuunnitteluun..."
+          className="w-full rounded-xl border border-gray-200 bg-white text-[14px] text-gray-800 p-4 min-h-[100px] resize-y focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30 focus:border-[#007AFF]"
+        />
+      )}
+
+      <div className="flex items-center gap-3 flex-wrap">
+        {attempt < MAX_ATTEMPTS && (
+          <>
+            <button
+              type="button"
+              onClick={() => showFeedback ? handleAction('retry', feedback) : handleAction('retry')}
+              disabled={isPending}
+              className="bg-[#007AFF] hover:bg-[#0066DD] active:scale-[0.98] text-white px-5 py-2.5 rounded-full text-[14px] font-semibold disabled:opacity-50 transition-all duration-200 shadow-sm"
+            >
+              {isPending ? 'Kaynnistetaan...' : 'Yrita uudelleen'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowFeedback(!showFeedback)}
+              className="text-[#007AFF] hover:text-[#0066DD] active:scale-[0.98] px-4 py-2.5 rounded-full text-[14px] font-medium transition-all duration-200 hover:bg-[#007AFF]/5"
+            >
+              {showFeedback ? 'Piilota palaute' : 'Anna palautetta'}
+            </button>
+          </>
+        )}
+        <button
+          type="button"
+          onClick={() => handleAction('accept')}
+          disabled={isPending}
+          className="text-gray-500 hover:text-gray-700 active:scale-[0.98] px-4 py-2.5 rounded-full text-[14px] font-medium transition-all duration-200 hover:bg-gray-100"
+        >
+          Hyvaksy sellaisenaan
+        </button>
+        <button
+          type="button"
+          onClick={() => handleAction('stop')}
+          disabled={isPending}
+          className="text-[#FF3B30] hover:text-[#D42D26] active:scale-[0.98] px-4 py-2.5 rounded-full text-[14px] font-medium transition-all duration-200 hover:bg-[#FF3B30]/5"
+        >
+          Lopeta
+        </button>
+      </div>
+      {error && (
+        <div className="rounded-xl bg-[#FF3B30]/5 border border-[#FF3B30]/10 px-4 py-3 text-[13px] text-[#FF3B30]">
+          {error}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function MessageBubble({ msg }: { msg: SerializedPipelineMessage }) {
   const [expanded, setExpanded] = useState(false)
   const isUser = msg.role === 'user'
@@ -254,6 +446,7 @@ function CompletedSummary({ run }: { run: SerializedPipelineRun }) {
   const planMsg = run.messages.find(m => m.artifactType === 'plan')
   const execMsg = run.messages.find(m => m.artifactType === 'code' || m.artifactType === 'execution')
   const testMsg = run.messages.find(m => m.artifactType === 'test_report')
+  const attempt = (run as unknown as { attempt?: number }).attempt ?? 1
 
   return (
     <div className="flex flex-col gap-5">
@@ -265,7 +458,11 @@ function CompletedSummary({ run }: { run: SerializedPipelineRun }) {
         </div>
         <div>
           <h3 className="text-[16px] font-semibold text-gray-900">Pipeline valmis</h3>
-          <p className="text-[13px] text-gray-500">Kaikki vaiheet suoritettu onnistuneesti</p>
+          <p className="text-[13px] text-gray-500">
+            {attempt > 1
+              ? `Valmis ${attempt} iteraation jalkeen`
+              : 'Kaikki vaiheet suoritettu onnistuneesti'}
+          </p>
         </div>
       </div>
 
@@ -445,10 +642,18 @@ export default function PipelineView({ cardId, currentStatus, onStatusChange }: 
 
   const isCompleted = currentStatus === 'COMPLETED'
   const isAwaitingApproval = currentStatus === 'AWAITING_APPROVAL'
+  const isAwaitingExecReview = currentStatus === 'AWAITING_EXEC_REVIEW'
+  const isTestFailed = currentStatus === 'TEST_FAILED'
   const planMsg = run?.messages.find(m => m.artifactType === 'plan')
+  const execMsg = run?.messages.find(m => m.artifactType === 'code' || m.artifactType === 'execution')
+  const testMsg = run?.messages.find(m => m.artifactType === 'test_report')
+  const attempt = (run as unknown as { attempt?: number })?.attempt ?? 1
 
   // Determine failed stage for stepper
   const failedStage = run?.stage
+
+  // Hide action bar for statuses that have their own action UI
+  const hasCustomActions = isAwaitingApproval || isAwaitingExecReview || isTestFailed
 
   return (
     <div className="flex flex-col gap-5">
@@ -457,7 +662,8 @@ export default function PipelineView({ cardId, currentStatus, onStatusChange }: 
         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold ${
           currentStatus === 'COMPLETED' ? 'bg-[#34C759]/10 text-[#34C759]'
           : currentStatus === 'FAILED' ? 'bg-[#FF3B30]/10 text-[#FF3B30]'
-          : currentStatus === 'AWAITING_APPROVAL' ? 'bg-[#FF9500]/10 text-[#FF9500]'
+          : currentStatus === 'TEST_FAILED' ? 'bg-[#FF3B30]/10 text-[#FF3B30]'
+          : currentStatus === 'AWAITING_APPROVAL' || currentStatus === 'AWAITING_EXEC_REVIEW' ? 'bg-[#FF9500]/10 text-[#FF9500]'
           : currentStatus === 'PAUSED' ? 'bg-gray-100 text-gray-500'
           : 'bg-[#007AFF]/10 text-[#007AFF]'
         }`}>
@@ -466,6 +672,9 @@ export default function PipelineView({ cardId, currentStatus, onStatusChange }: 
           )}
           {STATUS_LABELS[currentStatus] ?? currentStatus}
         </span>
+        {attempt > 1 && !isCompleted && (
+          <span className="text-[11px] font-medium text-gray-400">Yritys {attempt}</span>
+        )}
       </div>
 
       {/* Progress stepper */}
@@ -497,13 +706,32 @@ export default function PipelineView({ cardId, currentStatus, onStatusChange }: 
         />
       )}
 
+      {/* Execution review (when awaiting exec review) */}
+      {isAwaitingExecReview && execMsg && (
+        <ExecutionReview
+          execContent={execMsg.content}
+          cardId={cardId}
+          onAction={onStatusChange}
+        />
+      )}
+
+      {/* Test failure view */}
+      {isTestFailed && testMsg && (
+        <TestFailureView
+          testReport={testMsg.content}
+          attempt={attempt}
+          cardId={cardId}
+          onAction={onStatusChange}
+        />
+      )}
+
       {/* Completed summary */}
       {isCompleted && run && (
         <CompletedSummary run={run} />
       )}
 
-      {/* Messages (when not completed and not awaiting approval — show during active stages) */}
-      {!isCompleted && !isAwaitingApproval && run && run.messages.length > 0 && (
+      {/* Messages (when not in a special state — show during active stages) */}
+      {!isCompleted && !isAwaitingApproval && !isAwaitingExecReview && !isTestFailed && run && run.messages.length > 0 && (
         <div className="flex flex-col gap-3 max-h-[350px] overflow-y-auto pr-1">
           {run.messages.map((msg) => (
             <MessageBubble key={msg.id} msg={msg} />
@@ -527,8 +755,10 @@ export default function PipelineView({ cardId, currentStatus, onStatusChange }: 
         </div>
       )}
 
-      {/* Action bar */}
-      <ActionBar cardId={cardId} status={currentStatus} onAction={onStatusChange} />
+      {/* Action bar (hidden when custom action UI is active) */}
+      {!hasCustomActions && (
+        <ActionBar cardId={cardId} status={currentStatus} onAction={onStatusChange} />
+      )}
     </div>
   )
 }

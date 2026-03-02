@@ -53,11 +53,17 @@ async function withRetry<T>(
 export async function runPlanningStage(card: {
   title: string
   description: string
+  retryContext?: {
+    previousPlan: string
+    testFeedback: string
+    userFeedback?: string
+    attempt: number
+  }
 }): Promise<string> {
   // Create a fresh Anthropic client (worker is a separate process — reads API key from env)
   const anthropic = new Anthropic()
 
-  const userPrompt = buildPlanningPrompt(card.title, card.description)
+  const userPrompt = buildPlanningPrompt(card.title, card.description, card.retryContext)
 
   const response = await withRetry(() =>
     anthropic.messages.create({

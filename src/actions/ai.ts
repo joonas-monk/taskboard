@@ -5,11 +5,33 @@ import path from 'path'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import type { ActionResult, PipelineStatusResult } from '@/types'
-import { startPipelineSchema, getPipelineStatusSchema, pausePipelineSchema, approvePlanSchema } from './ai-schemas'
+import { startPipelineSchema, getPipelineStatusSchema, pausePipelineSchema, approvePlanSchema, approveExecutionSchema, handleTestFailureSchema } from './ai-schemas'
 import type { PipelineStatus } from '@/types'
 
 function formatZodError(error: { issues: Array<{ message: string }> }): string {
   return error.issues.map((i) => i.message).join(', ')
+}
+
+/** Spawn a detached pipeline worker process for a card. */
+function spawnWorker(cardId: string): void {
+  const appRoot = process.env.APP_ROOT || process.cwd()
+  const workerPath = path.resolve(appRoot, 'src/workers/pipeline-worker.ts')
+  const tsxPath = path.resolve(appRoot, 'node_modules/.bin/tsx')
+
+  const worker = spawn(tsxPath, [workerPath, cardId], {
+    cwd: appRoot,
+    detached: true,
+    stdio: 'ignore',
+    env: {
+      DATABASE_URL: process.env.DATABASE_URL!,
+      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
+      PIPELINE_MODEL: process.env.PIPELINE_MODEL ?? 'claude-haiku-4-5-20251001',
+      NODE_ENV: process.env.NODE_ENV ?? 'production',
+      PATH: process.env.PATH,
+      HOME: process.env.HOME,
+    },
+  })
+  worker.unref()
 }
 
 /**
@@ -65,26 +87,7 @@ export async function startPipeline(
       data: { pipelineStatus: 'QUEUED' },
     })
 
-    // Spawn detached worker
-    // In standalone mode, process.cwd() points to .next/standalone/ — use APP_ROOT instead
-    const appRoot = process.env.APP_ROOT || process.cwd()
-    const workerPath = path.resolve(appRoot, 'src/workers/pipeline-worker.ts')
-    const tsxPath = path.resolve(appRoot, 'node_modules/.bin/tsx')
-
-    const worker = spawn(tsxPath, [workerPath, cardId], {
-      cwd: appRoot,
-      detached: true,
-      stdio: 'ignore',
-      env: {
-        DATABASE_URL: process.env.DATABASE_URL!,
-        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
-        PIPELINE_MODEL: process.env.PIPELINE_MODEL ?? 'claude-haiku-4-5-20251001',
-        NODE_ENV: process.env.NODE_ENV ?? 'production',
-        PATH: process.env.PATH,
-        HOME: process.env.HOME,
-      },
-    })
-    worker.unref()
+    spawnWorker(cardId)
 
     revalidatePath('/')
     return { success: true, data: undefined }
@@ -236,34 +239,175 @@ export async function approvePlan(
       data: { pipelineStatus: 'QUEUED' },
     })
 
-    // Validate required env var
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return { success: false, error: 'ANTHROPIC_API_KEY puuttuu palvelimen ympäristömuuttujista' }
-    }
-
-    // Spawn detached worker to continue from EXECUTING stage
-    const appRoot = process.env.APP_ROOT || process.cwd()
-    const workerPath = path.resolve(appRoot, 'src/workers/pipeline-worker.ts')
-    const tsxPath = path.resolve(appRoot, 'node_modules/.bin/tsx')
-
-    const worker = spawn(tsxPath, [workerPath, cardId], {
-      cwd: appRoot,
-      detached: true,
-      stdio: 'ignore',
-      env: {
-        DATABASE_URL: process.env.DATABASE_URL!,
-        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
-        PIPELINE_MODEL: process.env.PIPELINE_MODEL ?? 'claude-haiku-4-5-20251001',
-        NODE_ENV: process.env.NODE_ENV ?? 'production',
-        PATH: process.env.PATH,
-        HOME: process.env.HOME,
-      },
-    })
-    worker.unref()
+    spawnWorker(cardId)
 
     revalidatePath('/')
     return { success: true, data: undefined }
   } catch {
     return { success: false, error: 'Suunnitelman hyväksyntä epäonnistui' }
+  }
+}
+
+/**
+ * Approve execution result and continue to TESTING.
+ * Only valid when card is in AWAITING_EXEC_REVIEW state.
+ * Optionally stores user feedback, then spawns worker to run testing.
+ */
+export async function approveExecution(
+  input: { cardId: string; feedback?: string }
+): Promise<ActionResult<void>> {
+  const parsed = approveExecutionSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: formatZodError(parsed.error) }
+  }
+
+  const { cardId, feedback } = parsed.data
+
+  try {
+    const card = await prisma.card.findUnique({
+      where: { id: cardId },
+      select: { id: true, pipelineStatus: true },
+    })
+
+    if (!card) {
+      return { success: false, error: 'Korttia ei löydy' }
+    }
+
+    if (card.pipelineStatus !== 'AWAITING_EXEC_REVIEW') {
+      return { success: false, error: 'Kortti ei odota toteutuksen tarkistusta' }
+    }
+
+    // Store user feedback if provided
+    if (feedback) {
+      const latestRun = await prisma.pipelineRun.findFirst({
+        where: { cardId },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      })
+
+      if (latestRun) {
+        await prisma.pipelineMessage.create({
+          data: {
+            pipelineRunId: latestRun.id,
+            role: 'user',
+            content: feedback,
+            artifactType: 'user_feedback',
+          },
+        })
+      }
+    }
+
+    await prisma.card.update({
+      where: { id: cardId },
+      data: { pipelineStatus: 'QUEUED' },
+    })
+
+    spawnWorker(cardId)
+
+    revalidatePath('/')
+    return { success: true, data: undefined }
+  } catch {
+    return { success: false, error: 'Toteutuksen hyväksyntä epäonnistui' }
+  }
+}
+
+/**
+ * Handle a failed test result.
+ * Only valid when card is in TEST_FAILED state.
+ * - 'retry': stores optional feedback, sets QUEUED, spawns worker (re-plans with context)
+ * - 'accept': sets COMPLETED, moves card to Valmis
+ * - 'stop': sets FAILED
+ */
+export async function handleTestFailure(
+  input: { cardId: string; action: 'retry' | 'accept' | 'stop'; feedback?: string }
+): Promise<ActionResult<void>> {
+  const parsed = handleTestFailureSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: formatZodError(parsed.error) }
+  }
+
+  const { cardId, action, feedback } = parsed.data
+
+  try {
+    const card = await prisma.card.findUnique({
+      where: { id: cardId },
+      select: { id: true, pipelineStatus: true },
+    })
+
+    if (!card) {
+      return { success: false, error: 'Korttia ei löydy' }
+    }
+
+    if (card.pipelineStatus !== 'TEST_FAILED') {
+      return { success: false, error: 'Kortti ei ole TEST_FAILED-tilassa' }
+    }
+
+    // Store user feedback if provided (for retry context)
+    if (feedback) {
+      const latestRun = await prisma.pipelineRun.findFirst({
+        where: { cardId },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      })
+
+      if (latestRun) {
+        await prisma.pipelineMessage.create({
+          data: {
+            pipelineRunId: latestRun.id,
+            role: 'user',
+            content: feedback,
+            artifactType: 'user_feedback',
+          },
+        })
+      }
+    }
+
+    if (action === 'retry') {
+      await prisma.card.update({
+        where: { id: cardId },
+        data: { pipelineStatus: 'QUEUED' },
+      })
+      spawnWorker(cardId)
+    } else if (action === 'accept') {
+      // Find Valmis column and move card there
+      const valmisCol = await prisma.column.findFirst({
+        where: { name: 'Valmis' },
+        select: { id: true },
+      })
+
+      if (valmisCol) {
+        const lastCard = await prisma.card.findFirst({
+          where: { columnId: valmisCol.id },
+          orderBy: { position: 'desc' },
+          select: { position: true },
+        })
+        const position = (lastCard?.position ?? 0) + 1000
+
+        await prisma.card.update({
+          where: { id: cardId },
+          data: {
+            pipelineStatus: 'COMPLETED',
+            columnId: valmisCol.id,
+            position,
+          },
+        })
+      } else {
+        await prisma.card.update({
+          where: { id: cardId },
+          data: { pipelineStatus: 'COMPLETED' },
+        })
+      }
+    } else {
+      // 'stop'
+      await prisma.card.update({
+        where: { id: cardId },
+        data: { pipelineStatus: 'FAILED' },
+      })
+    }
+
+    revalidatePath('/')
+    return { success: true, data: undefined }
+  } catch {
+    return { success: false, error: 'Testivirheen käsittely epäonnistui' }
   }
 }

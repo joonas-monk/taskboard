@@ -3,10 +3,46 @@
  * The prompt asks Claude to create a structured plan for the card's idea.
  * Works for all card types — specialized prompts can be added in Phase 6.
  */
-export function buildPlanningPrompt(title: string, description: string): string {
+export function buildPlanningPrompt(
+  title: string,
+  description: string,
+  retryContext?: {
+    previousPlan: string
+    testFeedback: string
+    userFeedback?: string
+    attempt: number
+  },
+): string {
   const descriptionSection = description.trim()
     ? `\n\nKuvaus:\n${description.trim()}`
     : ''
+
+  if (retryContext) {
+    return `Olet tehtävien suunnittelija. Tämä on UUDELLEENSUUNNITTELUKIERROS (yritys ${retryContext.attempt}/5).
+
+Tehtävä: ${title}${descriptionSection}
+
+EDELLINEN SUUNNITELMA (hylättiin):
+${retryContext.previousPlan}
+
+TESTIRAPORTIN PALAUTE (miksi hylättiin):
+${retryContext.testFeedback}
+${retryContext.userFeedback ? `\nKÄYTTÄJÄN PALAUTE:\n${retryContext.userFeedback}` : ''}
+
+Korjaa suunnitelma niin, että se vastaa KAIKKIIN hylkäysperusteisiin. Varmista erityisesti:
+- Kaikki puuttuvat tiedostot ja komponentit luodaan
+- Jokainen hyväksymiskriteeri täyttyy kokonaan
+- Koodi on valmis, ajettavissa ja dokumentoitu
+- Älä jätä mitään kesken — lopputuotteen pitää olla valmis
+
+Suunnitelman tulee sisältää:
+1. **Tavoite**: Mitä tehtävällä saavutetaan (1-2 lausetta)
+2. **Korjattavat ongelmat**: Mitä edellisessä iteraatiossa oli vikana
+3. **Vaiheet**: Konkreettiset toteutusvaiheet (numeroitu lista)
+4. **Hyväksymiskriteerit**: Miten tiedetään että tehtävä on VARMASTI valmis
+
+Vastaa suomeksi. Ole tarkka ja kattava — tämä suunnitelma ei saa epäonnistua.`
+  }
 
   return `Olet tehtävien suunnittelija. Käyttäjä on lisännyt uuden idean kanban-taululle.
 
