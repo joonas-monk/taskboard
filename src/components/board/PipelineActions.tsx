@@ -4,7 +4,7 @@ import { useTransition, useState } from 'react'
 import { startPipeline, pausePipeline } from '@/actions/ai'
 
 const PAUSEABLE = new Set(['PLANNING', 'EXECUTING', 'TESTING'])
-const RETRIABLE = new Set(['FAILED', 'PAUSED'])
+const RETRIABLE = new Set(['FAILED', 'PAUSED', 'QUEUED'])
 const STARTABLE = new Set(['IDLE'])
 
 interface Props {

@@ -23,6 +23,7 @@ module.exports = {
       PIPELINE_MODEL: process.env.PIPELINE_MODEL || 'claude-3-5-haiku-20241022',
       HOME: process.env.HOME || '/home/deploy',
       PATH: process.env.PATH,
+      APP_ROOT: '/home/deploy/taskboard',
     },
     out_file: '/var/log/taskboard/out.log',
     error_file: '/var/log/taskboard/err.log',

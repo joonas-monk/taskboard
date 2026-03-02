@@ -38,7 +38,7 @@ export async function startPipeline(
       return { success: false, error: 'Korttia ei löydy' }
     }
 
-    if (card.pipelineStatus !== 'IDLE' && card.pipelineStatus !== 'FAILED' && card.pipelineStatus !== 'PAUSED') {
+    if (card.pipelineStatus !== 'IDLE' && card.pipelineStatus !== 'FAILED' && card.pipelineStatus !== 'PAUSED' && card.pipelineStatus !== 'QUEUED') {
       return { success: false, error: 'Pipeline on jo käynnissä tai valmis' }
     }
 
@@ -66,11 +66,13 @@ export async function startPipeline(
     })
 
     // Spawn detached worker
-    const workerPath = path.resolve(process.cwd(), 'src/workers/pipeline-worker.ts')
-    const tsxPath = path.resolve(process.cwd(), 'node_modules/.bin/tsx')
+    // In standalone mode, process.cwd() points to .next/standalone/ — use APP_ROOT instead
+    const appRoot = process.env.APP_ROOT || process.cwd()
+    const workerPath = path.resolve(appRoot, 'src/workers/pipeline-worker.ts')
+    const tsxPath = path.resolve(appRoot, 'node_modules/.bin/tsx')
 
     const worker = spawn(tsxPath, [workerPath, cardId], {
-      cwd: process.cwd(),
+      cwd: appRoot,
       detached: true,
       stdio: 'ignore',
       env: {
