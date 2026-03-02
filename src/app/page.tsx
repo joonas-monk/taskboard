@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getBoard, getLabels } from '@/actions/tasks'
 import BoardLoader from '@/components/board/BoardLoader'
 import type { ColumnWithCards, SerializedColumn } from '@/types'
