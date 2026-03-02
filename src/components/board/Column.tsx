@@ -23,10 +23,10 @@ export default function Column({ column, onCardClick }: Props) {
   const lastPosition = column.cards.at(-1)?.position ?? 0
 
   return (
-    <div className="flex flex-col w-[280px] shrink-0 bg-slate-200 rounded-xl">
-      <div className="px-3 py-2.5 font-semibold text-sm text-slate-700 border-b border-slate-300">
+    <div className="flex flex-col w-[280px] shrink-0 bg-gray-100/80 backdrop-blur-sm rounded-2xl">
+      <div className="px-4 py-3 font-semibold text-[13px] text-gray-700 tracking-wide uppercase">
         {column.name}
-        <span className="ml-2 text-xs font-normal text-slate-500">
+        <span className="ml-2 text-[12px] font-normal text-gray-400 normal-case tracking-normal">
           {optimisticCards.length}
         </span>
       </div>

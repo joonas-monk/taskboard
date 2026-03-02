@@ -106,8 +106,8 @@ async function main() {
       throw new Error(`Card not found: ${cardId}`)
     }
 
-    if (card.pipelineStatus !== 'QUEUED') {
-      throw new Error(`Card is not QUEUED (current: ${card.pipelineStatus})`)
+    if (card.pipelineStatus !== 'QUEUED' && card.pipelineStatus !== 'AWAITING_APPROVAL') {
+      throw new Error(`Card is not QUEUED or AWAITING_APPROVAL (current: ${card.pipelineStatus})`)
     }
 
     // 2. Load all column IDs (needed for column moves)
@@ -134,8 +134,8 @@ async function main() {
     let planText: string | undefined
     let execResult: string | undefined
 
-    if (latestRun?.status === 'FAILED') {
-      if (latestRun.stage === 'EXECUTING') {
+    if (latestRun?.status === 'FAILED' || latestRun?.status === 'AWAITING_APPROVAL') {
+      if (latestRun.status === 'AWAITING_APPROVAL' || latestRun.stage === 'EXECUTING') {
         // Load planText from previous run
         const planMsg = await prisma.pipelineMessage.findFirst({
           where: { pipelineRunId: latestRun.id, artifactType: 'plan' },
@@ -221,6 +221,22 @@ async function main() {
           data: { pipelineStatus: 'PAUSED' },
         }),
       ])
+      return
+    }
+
+    // --- Wait for user approval after planning ---
+    if (startStage === 'PLANNING') {
+      await prisma.$transaction([
+        prisma.pipelineRun.update({
+          where: { id: run.id },
+          data: { status: 'AWAITING_APPROVAL' },
+        }),
+        prisma.card.update({
+          where: { id: card.id },
+          data: { pipelineStatus: 'AWAITING_APPROVAL' },
+        }),
+      ])
+      // Worker exits — approvePlan Server Action will spawn a new worker to continue
       return
     }
 

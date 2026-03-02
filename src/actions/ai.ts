@@ -5,7 +5,7 @@ import path from 'path'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import type { ActionResult, PipelineStatusResult } from '@/types'
-import { startPipelineSchema, getPipelineStatusSchema, pausePipelineSchema } from './ai-schemas'
+import { startPipelineSchema, getPipelineStatusSchema, pausePipelineSchema, approvePlanSchema } from './ai-schemas'
 import type { PipelineStatus } from '@/types'
 
 function formatZodError(error: { issues: Array<{ message: string }> }): string {
@@ -175,5 +175,95 @@ export async function pausePipeline(
     return { success: true, data: undefined }
   } catch {
     return { success: false, error: 'Pipelinen pysäytys epäonnistui' }
+  }
+}
+
+/**
+ * Approve (or edit) the AI plan and continue pipeline to execution.
+ * Only valid when card is in AWAITING_APPROVAL state.
+ * Optionally updates the plan text, then spawns a new worker to continue from EXECUTING.
+ */
+export async function approvePlan(
+  input: { cardId: string; editedPlan?: string }
+): Promise<ActionResult<void>> {
+  const parsed = approvePlanSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: formatZodError(parsed.error) }
+  }
+
+  const { cardId, editedPlan } = parsed.data
+
+  try {
+    const card = await prisma.card.findUnique({
+      where: { id: cardId },
+      select: { id: true, pipelineStatus: true },
+    })
+
+    if (!card) {
+      return { success: false, error: 'Korttia ei löydy' }
+    }
+
+    if (card.pipelineStatus !== 'AWAITING_APPROVAL') {
+      return { success: false, error: 'Kortti ei odota hyväksyntää' }
+    }
+
+    // If user edited the plan, update the plan message in the latest run
+    if (editedPlan) {
+      const latestRun = await prisma.pipelineRun.findFirst({
+        where: { cardId },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      })
+
+      if (latestRun) {
+        const planMsg = await prisma.pipelineMessage.findFirst({
+          where: { pipelineRunId: latestRun.id, artifactType: 'plan' },
+          select: { id: true },
+        })
+
+        if (planMsg) {
+          await prisma.pipelineMessage.update({
+            where: { id: planMsg.id },
+            data: { content: editedPlan },
+          })
+        }
+      }
+    }
+
+    // Set card to QUEUED so the worker can pick it up
+    await prisma.card.update({
+      where: { id: cardId },
+      data: { pipelineStatus: 'QUEUED' },
+    })
+
+    // Validate required env var
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return { success: false, error: 'ANTHROPIC_API_KEY puuttuu palvelimen ympäristömuuttujista' }
+    }
+
+    // Spawn detached worker to continue from EXECUTING stage
+    const appRoot = process.env.APP_ROOT || process.cwd()
+    const workerPath = path.resolve(appRoot, 'src/workers/pipeline-worker.ts')
+    const tsxPath = path.resolve(appRoot, 'node_modules/.bin/tsx')
+
+    const worker = spawn(tsxPath, [workerPath, cardId], {
+      cwd: appRoot,
+      detached: true,
+      stdio: 'ignore',
+      env: {
+        DATABASE_URL: process.env.DATABASE_URL!,
+        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
+        PIPELINE_MODEL: process.env.PIPELINE_MODEL ?? 'claude-haiku-4-5-20251001',
+        NODE_ENV: process.env.NODE_ENV ?? 'production',
+        PATH: process.env.PATH,
+        HOME: process.env.HOME,
+      },
+    })
+    worker.unref()
+
+    revalidatePath('/')
+    return { success: true, data: undefined }
+  } catch {
+    return { success: false, error: 'Suunnitelman hyväksyntä epäonnistui' }
   }
 }

@@ -15,6 +15,7 @@ interface Props {
 
 export default function Card({ card, onClick }: Props) {
   const isOptimistic = card.id.startsWith('optimistic-')
+  const isPipelineActive = ['QUEUED', 'PLANNING', 'EXECUTING', 'TESTING', 'AWAITING_APPROVAL'].includes(card.pipelineStatus)
 
   const {
     attributes,
@@ -37,9 +38,11 @@ export default function Card({ card, onClick }: Props) {
       style={style}
       {...attributes}
       {...listeners}
-      className={`bg-white rounded-lg shadow-sm border border-slate-200 p-3 flex flex-col gap-2 ${
-        onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''
-      } ${isDragging ? 'shadow-lg ring-2 ring-blue-300' : ''}`}
+      className={`bg-white rounded-xl shadow-sm border border-gray-100 p-3 flex flex-col gap-2 transition-all duration-200 ${
+        onClick ? 'cursor-pointer hover:shadow-md' : ''
+      } ${isDragging ? 'shadow-lg ring-2 ring-blue-300' : ''} ${
+        isPipelineActive ? 'shadow-[0_0_12px_rgba(0,122,255,0.15)] border-[#007AFF]/20' : ''
+      }`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}

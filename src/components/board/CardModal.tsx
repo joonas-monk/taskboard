@@ -4,9 +4,9 @@ import { useRef, useEffect, useActionState, useTransition, useState } from 'reac
 import { useRouter } from 'next/navigation'
 import { updateTask, deleteTask } from '@/actions/tasks'
 import type { SerializedCard, ActionResult, CardWithLabels } from '@/types'
-import PipelineLog from './PipelineLog'
+import PipelineView from './PipelineView'
 
-type Tab = 'kortti' | 'loki'
+type Tab = 'kortti' | 'pipeline'
 
 interface Props {
   card: SerializedCard | null
@@ -34,10 +34,11 @@ export function CardModal({ card, labels, onClose }: Props) {
   }, [card])
 
   // Reset delete confirmation state and tab when card changes
+  // Auto-open Pipeline tab if card has pipeline activity
   useEffect(() => {
     setConfirmDelete(false)
     setDeleteError(null)
-    setActiveTab('kortti')
+    setActiveTab(card && card.pipelineStatus !== 'IDLE' ? 'pipeline' : 'kortti')
   }, [card])
 
   // Close on backdrop click
@@ -91,46 +92,48 @@ export function CardModal({ card, labels, onClose }: Props) {
       ref={dialogRef}
       onClose={onClose}
       onClick={handleDialogClick}
-      className="rounded-xl p-0 shadow-xl backdrop:bg-black/40 max-w-lg w-full"
+      className="rounded-2xl p-0 shadow-2xl backdrop:bg-black/30 backdrop:backdrop-blur-sm max-w-2xl w-full border-0"
     >
       {card && (
         <div className="p-6" key={card.id}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-800">Muokkaa korttia</h2>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-[17px] font-semibold text-gray-900 tracking-tight">{card.title}</h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-600 text-xl leading-none p-1"
+              className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all duration-200"
               aria-label="Sulje"
             >
-              &times;
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
             </button>
           </div>
 
-          {/* Tab navigation — only show when card has non-IDLE pipeline status */}
+          {/* Apple-style segmented control — always show if card has pipeline activity */}
           {card.pipelineStatus !== 'IDLE' && (
-            <div className="flex border-b border-slate-200 mb-4">
+            <div className="flex p-0.5 bg-gray-100 rounded-lg mb-5">
               <button
                 type="button"
                 onClick={() => setActiveTab('kortti')}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                className={`flex-1 px-4 py-1.5 rounded-md text-[13px] font-semibold transition-all duration-200 ${
                   activeTab === 'kortti'
-                    ? 'border-b-2 border-blue-600 text-blue-600'
-                    : 'text-slate-500 hover:text-slate-700'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 Kortti
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('loki')}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === 'loki'
-                    ? 'border-b-2 border-blue-600 text-blue-600'
-                    : 'text-slate-500 hover:text-slate-700'
+                onClick={() => setActiveTab('pipeline')}
+                className={`flex-1 px-4 py-1.5 rounded-md text-[13px] font-semibold transition-all duration-200 ${
+                  activeTab === 'pipeline'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                Tekoaly-loki
+                Pipeline
               </button>
             </div>
           )}
@@ -224,36 +227,36 @@ export function CardModal({ card, labels, onClose }: Props) {
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    className="bg-[#007AFF] hover:bg-[#0066DD] active:scale-[0.98] text-white px-5 py-2.5 rounded-full text-[14px] font-semibold disabled:opacity-50 transition-all duration-200 shadow-sm"
                   >
                     {isPending ? 'Tallennetaan...' : 'Tallenna'}
                   </button>
                   {updateState && !updateState.success && (
-                    <p className="text-red-600 text-sm">{updateState.error}</p>
+                    <p className="text-[#FF3B30] text-[13px]">{updateState.error}</p>
                   )}
                 </div>
               </form>
 
-              <div className="border-t border-slate-200 mt-6 pt-4">
+              <div className="border-t border-gray-100 mt-6 pt-4">
                 {!confirmDelete ? (
                   <button
                     type="button"
                     onClick={() => setConfirmDelete(true)}
-                    className="text-red-600 hover:text-red-700 text-sm transition-colors"
+                    className="text-[#FF3B30] hover:text-[#E0342B] text-[13px] font-medium transition-colors"
                   >
                     Poista kortti
                   </button>
                 ) : (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-sm text-slate-600">
+                  <div className="flex flex-col gap-3">
+                    <p className="text-[14px] text-gray-600">
                       Haluatko varmasti poistaa taman kortin?
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                       <button
                         type="button"
                         onClick={handleDelete}
                         disabled={deleteIsPending}
-                        className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 disabled:opacity-50 transition-colors"
+                        className="bg-[#FF3B30] hover:bg-[#E0342B] active:scale-[0.98] text-white px-5 py-2 rounded-full text-[13px] font-semibold disabled:opacity-50 transition-all duration-200"
                       >
                         {deleteIsPending ? 'Poistetaan...' : 'Vahvista poisto'}
                       </button>
@@ -263,13 +266,13 @@ export function CardModal({ card, labels, onClose }: Props) {
                           setConfirmDelete(false)
                           setDeleteError(null)
                         }}
-                        className="text-slate-600 px-3 py-1.5 rounded text-sm hover:bg-slate-200 transition-colors"
+                        className="text-gray-500 hover:text-gray-700 px-4 py-2 rounded-full text-[13px] font-medium hover:bg-gray-100 transition-all duration-200"
                       >
                         Peruuta
                       </button>
                     </div>
                     {deleteError && (
-                      <p className="text-red-600 text-sm">{deleteError}</p>
+                      <div className="rounded-xl bg-[#FF3B30]/5 border border-[#FF3B30]/10 px-4 py-2.5 text-[13px] text-[#FF3B30]">{deleteError}</div>
                     )}
                   </div>
                 )}
@@ -277,9 +280,9 @@ export function CardModal({ card, labels, onClose }: Props) {
             </>
           )}
 
-          {/* Tekoaly-loki tab: pipeline conversation log */}
-          {card.pipelineStatus !== 'IDLE' && activeTab === 'loki' && (
-            <PipelineLog
+          {/* Pipeline tab: Apple-style pipeline view */}
+          {card.pipelineStatus !== 'IDLE' && activeTab === 'pipeline' && (
+            <PipelineView
               cardId={card.id}
               currentStatus={card.pipelineStatus}
               onStatusChange={() => router.refresh()}

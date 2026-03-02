@@ -11,3 +11,8 @@ export const getPipelineStatusSchema = z.object({
 export const pausePipelineSchema = z.object({
   cardId: z.string().min(1, 'Kortin tunniste vaaditaan'),
 })
+
+export const approvePlanSchema = z.object({
+  cardId: z.string().min(1, 'Kortin tunniste vaaditaan'),
+  editedPlan: z.string().optional(),
+})
