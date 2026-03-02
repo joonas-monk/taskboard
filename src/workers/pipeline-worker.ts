@@ -241,7 +241,7 @@ async function main() {
     }
 
     // --- Stage 2: EXECUTING ---
-    if (startStage === 'PLANNING' || startStage === 'EXECUTING') {
+    if (startStage === 'EXECUTING') {
       // Move card to Toteutus column
       const execPosition = await getNextPosition(toteutusId)
       await advanceToStage(run.id, card.id, 'EXECUTING', 'EXECUTING', toteutusId, execPosition)
