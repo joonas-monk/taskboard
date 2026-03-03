@@ -274,24 +274,8 @@ async function main() {
       return
     }
 
-    // --- Wait for user approval after planning ---
-    if (startStage === 'PLANNING') {
-      await prisma.$transaction([
-        prisma.pipelineRun.update({
-          where: { id: run.id },
-          data: { status: 'AWAITING_APPROVAL' },
-        }),
-        prisma.card.update({
-          where: { id: card.id },
-          data: { pipelineStatus: 'AWAITING_APPROVAL' },
-        }),
-      ])
-      // Worker exits — approvePlan Server Action will spawn a new worker to continue
-      return
-    }
-
-    // --- Stage 2: EXECUTING ---
-    if (startStage === 'EXECUTING') {
+    // --- Stage 2: EXECUTING (auto-continue, no approval checkpoint) ---
+    {
       // Move card to Toteutus column
       const execPosition = await getNextPosition(toteutusId)
       await advanceToStage(run.id, card.id, 'EXECUTING', 'EXECUTING', toteutusId, execPosition)
@@ -334,23 +318,7 @@ async function main() {
       return
     }
 
-    // --- Wait for user review after execution ---
-    if (startStage === 'EXECUTING') {
-      await prisma.$transaction([
-        prisma.pipelineRun.update({
-          where: { id: run.id },
-          data: { status: 'AWAITING_EXEC_REVIEW' },
-        }),
-        prisma.card.update({
-          where: { id: card.id },
-          data: { pipelineStatus: 'AWAITING_EXEC_REVIEW' },
-        }),
-      ])
-      // Worker exits — approveExecution Server Action will spawn a new worker to continue
-      return
-    }
-
-    // --- Stage 3: TESTING ---
+    // --- Stage 3: TESTING (auto-continue, no exec review checkpoint) ---
     // Move card to Testaus column
     const testPosition = await getNextPosition(testausId)
     await advanceToStage(run.id, card.id, 'TESTING', 'TESTING', testausId, testPosition)
