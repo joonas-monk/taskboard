@@ -44,6 +44,17 @@ function runStep(
         ...process.env,
         NODE_ENV: 'development', // needed for devDependencies
         CI: 'true',
+        // Ensure node/npm/python are available for deploy user
+        PATH: [
+          '/usr/local/bin',
+          '/usr/bin',
+          '/bin',
+          process.env.PATH ?? '',
+        ].filter(Boolean).join(':'),
+        // Use project venv python if available
+        VIRTUAL_ENV: existsSync(path.join(workspacePath, '.venv'))
+          ? path.join(workspacePath, '.venv')
+          : (process.env.VIRTUAL_ENV ?? ''),
       },
       maxBuffer: 10 * 1024 * 1024, // 10MB
     }).toString()
