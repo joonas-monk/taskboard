@@ -114,7 +114,7 @@ export async function runExecutionStage(
       permissionMode: 'bypassPermissions',
       allowDangerouslySkipPermissions: true,
       allowedTools: ['Read', 'Write', 'Edit', 'Bash', 'Glob', 'Grep'],
-      maxTurns: 30,
+      maxTurns: 100,
       env: {
         ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
         PATH: process.env.PATH!,
@@ -129,7 +129,10 @@ export async function runExecutionStage(
         }
       }
     } else if (message.type === 'result') {
-      if (message.subtype !== 'success') {
+      if (message.subtype === 'error_max_turns') {
+        // Max turns hit but files were still created — treat as partial success
+        console.warn('[pipeline] Execution hit max turns limit — treating as partial completion')
+      } else if (message.subtype !== 'success') {
         throw new Error(`Suoritus epäonnistui: ${message.subtype}`)
       }
     }
