@@ -29,6 +29,10 @@ function spawnWorker(cardId: string): void {
       NODE_ENV: process.env.NODE_ENV ?? 'production',
       PATH: process.env.PATH,
       HOME: process.env.HOME,
+      // Production pipeline env vars
+      GITHUB_TOKEN: process.env.GITHUB_TOKEN ?? '',
+      VPS_HOST: process.env.VPS_HOST ?? '187.77.226.235',
+      WORKSPACE_BASE: process.env.WORKSPACE_BASE ?? '',
     },
   })
   worker.unref()

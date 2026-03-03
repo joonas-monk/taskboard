@@ -12,7 +12,7 @@ interface Props {
 
 // --- Constants ---
 
-const STAGES = ['Idea', 'Suunnittelu', 'Toteutus', 'Testaus', 'Valmis'] as const
+const STAGES = ['Idea', 'Suunnittelu', 'Toteutus', 'Testaus', 'Julkaisu'] as const
 
 const STATUS_TO_STAGE_INDEX: Record<string, number> = {
   IDLE: 0,
@@ -21,8 +21,10 @@ const STATUS_TO_STAGE_INDEX: Record<string, number> = {
   AWAITING_APPROVAL: 1,
   EXECUTING: 2,
   AWAITING_EXEC_REVIEW: 2,
+  BUILDING: 2,
   TESTING: 3,
   TEST_FAILED: 3,
+  DEPLOYING: 4,
   COMPLETED: 4,
   FAILED: -1,
   PAUSED: -1,
@@ -35,8 +37,10 @@ const STATUS_LABELS: Record<string, string> = {
   AWAITING_APPROVAL: 'Odottaa hyvaksyntaa',
   EXECUTING: 'Toteutetaan...',
   AWAITING_EXEC_REVIEW: 'Odottaa tarkistusta',
+  BUILDING: 'Rakennetaan...',
   TESTING: 'Testataan...',
   TEST_FAILED: 'Testi hylatty',
+  DEPLOYING: 'Julkaistaan...',
   COMPLETED: 'Valmis',
   FAILED: 'Epaonnistui',
   PAUSED: 'Pysaytetty',
@@ -394,7 +398,10 @@ function MessageBubble({ msg }: { msg: SerializedPipelineMessage }) {
     plan: 'Suunnitelma',
     code: 'Koodi',
     execution: 'Toteutus',
+    build_output: 'Build',
     test_report: 'Testiraportti',
+    deploy_info: 'Julkaisu',
+    user_feedback: 'Palaute',
   }
 
   return (
@@ -445,7 +452,9 @@ function MessageBubble({ msg }: { msg: SerializedPipelineMessage }) {
 function CompletedSummary({ run }: { run: SerializedPipelineRun }) {
   const planMsg = run.messages.find(m => m.artifactType === 'plan')
   const execMsg = run.messages.find(m => m.artifactType === 'code' || m.artifactType === 'execution')
+  const buildMsg = run.messages.find(m => m.artifactType === 'build_output')
   const testMsg = run.messages.find(m => m.artifactType === 'test_report')
+  const deployMsg = run.messages.find(m => m.artifactType === 'deploy_info')
   const attempt = (run as unknown as { attempt?: number }).attempt ?? 1
 
   return (
@@ -466,12 +475,22 @@ function CompletedSummary({ run }: { run: SerializedPipelineRun }) {
         </div>
       </div>
 
+      {/* Deploy links (shown prominently at top) */}
+      {deployMsg && (
+        <div className="rounded-2xl bg-[#34C759]/5 border border-[#34C759]/10 p-4">
+          <pre className="whitespace-pre-wrap text-[13px] text-gray-700 font-mono leading-relaxed">{deployMsg.content}</pre>
+        </div>
+      )}
+
       {/* Summary sections */}
       {planMsg && (
         <SummarySection title="Suunnitelma" content={planMsg.content} icon="plan" />
       )}
       {execMsg && (
         <SummarySection title="Toteutus" content={execMsg.content} icon="exec" />
+      )}
+      {buildMsg && (
+        <SummarySection title="Build-tulos" content={buildMsg.content} icon="build" />
       )}
       {testMsg && (
         <SummarySection title="Testiraportti" content={testMsg.content} icon="test" />
@@ -489,6 +508,7 @@ function SummarySection({ title, content, icon }: { title: string; content: stri
   const icons: Record<string, { bg: string; color: string }> = {
     plan: { bg: 'bg-[#007AFF]/10', color: 'text-[#007AFF]' },
     exec: { bg: 'bg-[#5856D6]/10', color: 'text-[#5856D6]' },
+    build: { bg: 'bg-[#FF9500]/10', color: 'text-[#FF9500]' },
     test: { bg: 'bg-[#34C759]/10', color: 'text-[#34C759]' },
   }
 
@@ -503,7 +523,7 @@ function SummarySection({ title, content, icon }: { title: string; content: stri
       >
         <div className={`w-8 h-8 rounded-lg ${style.bg} flex items-center justify-center`}>
           <span className={`text-[14px] font-bold ${style.color}`}>
-            {icon === 'plan' ? 'S' : icon === 'exec' ? 'T' : 'R'}
+            {icon === 'plan' ? 'S' : icon === 'exec' ? 'T' : icon === 'build' ? 'B' : 'R'}
           </span>
         </div>
         <span className="text-[14px] font-semibold text-gray-900 flex-1">{title}</span>
@@ -542,7 +562,7 @@ function ActionBar({
 
   const canStart = status === 'IDLE'
   const canRetry = ['FAILED', 'PAUSED', 'QUEUED'].includes(status)
-  const canPause = ['PLANNING', 'EXECUTING', 'TESTING'].includes(status)
+  const canPause = ['PLANNING', 'EXECUTING', 'BUILDING', 'TESTING', 'DEPLOYING'].includes(status)
 
   if (!canStart && !canRetry && !canPause) return null
 
@@ -667,7 +687,7 @@ export default function PipelineView({ cardId, currentStatus, onStatusChange }: 
           : currentStatus === 'PAUSED' ? 'bg-gray-100 text-gray-500'
           : 'bg-[#007AFF]/10 text-[#007AFF]'
         }`}>
-          {['QUEUED', 'PLANNING', 'EXECUTING', 'TESTING'].includes(currentStatus) && (
+          {['QUEUED', 'PLANNING', 'EXECUTING', 'BUILDING', 'TESTING', 'DEPLOYING'].includes(currentStatus) && (
             <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
           )}
           {STATUS_LABELS[currentStatus] ?? currentStatus}

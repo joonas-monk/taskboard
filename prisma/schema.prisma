@@ -28,8 +28,10 @@ enum PipelineStatus {
   AWAITING_APPROVAL
   EXECUTING
   AWAITING_EXEC_REVIEW
+  BUILDING
   TESTING
   TEST_FAILED
+  DEPLOYING
   COMPLETED
   FAILED
   PAUSED
@@ -61,6 +63,11 @@ model Card {
   cardType       CardType       @default(GENERAL)
   pipelineStatus PipelineStatus @default(IDLE)
   pipelineRuns   PipelineRun[]
+
+  // Production pipeline fields
+  repoUrl    String?  // GitHub repo URL (e.g., https://github.com/joonas-monk/project-name)
+  deployUrl  String?  // Deployed app URL (e.g., http://187.77.226.235:4001)
+  deployPort Int?     // Assigned port for PM2 process
 }
 
 model Label {

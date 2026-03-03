@@ -39,6 +39,9 @@ export function AddCardForm({ columnId, lastPosition, onOptimisticAdd, isIdeaCol
       labels: [],
       cardType: selectedCardType,
       pipelineStatus: 'IDLE',
+      repoUrl: null,
+      deployUrl: null,
+      deployPort: null,
     }
 
     // Reset form immediately (outside transition so UI updates instantly)

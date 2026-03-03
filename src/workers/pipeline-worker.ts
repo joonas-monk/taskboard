@@ -4,6 +4,8 @@
 // Spawned by startPipeline Server Action via child_process.spawn.
 // Receives cardId as argv[2] and env vars (DATABASE_URL, ANTHROPIC_API_KEY, PIPELINE_MODEL).
 // Creates its own PrismaClient (separate OS process — cannot share Next.js singleton).
+//
+// Full pipeline: PLANNING → EXECUTING → BUILDING → TESTING → DEPLOYING → COMPLETED
 
 import { PrismaClient } from '@/generated/prisma/client'
 import { PipelineStatus } from '@/generated/prisma/enums'
@@ -15,6 +17,9 @@ import {
   runTestingStage,
 } from './pipeline-stages'
 import { ensureWorkspace } from '../lib/workspace'
+import { runBuildVerification } from '../lib/build'
+import { toRepoName, gitInitAndPush } from '../lib/github'
+import { deployWithPM2 } from '../lib/deploy'
 
 // --- Setup ---
 
@@ -83,6 +88,27 @@ async function advanceToStage(
     prisma.card.update({
       where: { id },
       data: { columnId, position, pipelineStatus: newStatus },
+    }),
+  ])
+}
+
+/**
+ * Update pipeline status without moving card to different column.
+ */
+async function updateStatus(
+  runId: string,
+  id: string,
+  newStage: string,
+  newStatus: PipelineStatus,
+): Promise<void> {
+  await prisma.$transaction([
+    prisma.pipelineRun.update({
+      where: { id: runId },
+      data: { stage: newStage, status: newStatus },
+    }),
+    prisma.card.update({
+      where: { id },
+      data: { pipelineStatus: newStatus },
     }),
   ])
 }
@@ -159,6 +185,7 @@ async function main() {
     let startStage: StartStage = 'PLANNING'
     let planText: string | undefined
     let execResult: string | undefined
+    let buildOutput: string | undefined
     let attempt = 1
     let retryContext: { previousPlan: string; testFeedback: string; userFeedback?: string; attempt: number } | undefined
 
@@ -303,7 +330,7 @@ async function main() {
       })
     }
 
-    // --- Pause check 2 (between EXECUTING and TESTING) ---
+    // --- Pause check 2 (between EXECUTING and BUILDING) ---
     if (await checkPaused(card.id)) {
       await prisma.$transaction([
         prisma.pipelineRun.update({
@@ -318,12 +345,57 @@ async function main() {
       return
     }
 
-    // --- Stage 3: TESTING (auto-continue, no exec review checkpoint) ---
+    // --- Stage 2.5: BUILDING (CODE cards only — real npm install/build/test) ---
+    if (card.cardType === 'CODE') {
+      const workspacePath = await ensureWorkspace(card.id)
+
+      // Update status to BUILDING (stay in Toteutus column)
+      await updateStatus(run.id, card.id, 'BUILDING', 'BUILDING')
+
+      console.log(`[Pipeline] Building project in ${workspacePath}...`)
+      const buildResult = runBuildVerification(workspacePath)
+
+      buildOutput = buildResult.summary
+
+      // Store build output
+      await prisma.pipelineMessage.create({
+        data: {
+          pipelineRunId: run.id,
+          role: 'assistant',
+          content: buildOutput,
+          artifactType: 'build_output',
+        },
+      })
+
+      console.log(`[Pipeline] Build ${buildResult.success ? 'onnistui' : 'epäonnistui'}`)
+    }
+
+    // --- Pause check 3 (between BUILDING and TESTING) ---
+    if (await checkPaused(card.id)) {
+      await prisma.$transaction([
+        prisma.pipelineRun.update({
+          where: { id: run.id },
+          data: { status: 'PAUSED' },
+        }),
+        prisma.card.update({
+          where: { id: card.id },
+          data: { pipelineStatus: 'PAUSED' },
+        }),
+      ])
+      return
+    }
+
+    // --- Stage 3: TESTING (AI evaluation with real build output) ---
     // Move card to Testaus column
     const testPosition = await getNextPosition(testausId)
     await advanceToStage(run.id, card.id, 'TESTING', 'TESTING', testausId, testPosition)
 
-    const testResult = await runTestingStage({ title: card.title }, planText!, execResult!)
+    const testResult = await runTestingStage(
+      { title: card.title },
+      planText!,
+      execResult!,
+      buildOutput, // Real build/test output included for CODE cards
+    )
 
     // Store test report
     await prisma.pipelineMessage.create({
@@ -339,9 +411,72 @@ async function main() {
     const testPassed = testResult.trimStart().toUpperCase().startsWith('HYVÄKSYTTY')
 
     if (testPassed) {
+      // --- Stage 4: DEPLOYING (CODE cards only — git push + PM2 deploy) ---
+      if (card.cardType === 'CODE') {
+        await updateStatus(run.id, card.id, 'DEPLOYING', 'DEPLOYING')
+
+        const workspacePath = await ensureWorkspace(card.id)
+        const repoName = toRepoName(card.title)
+
+        // Git push to GitHub (if GITHUB_TOKEN is available)
+        let repoUrl: string | undefined
+        if (process.env.GITHUB_TOKEN) {
+          try {
+            console.log(`[Pipeline] Pushing to GitHub: ${repoName}...`)
+            repoUrl = await gitInitAndPush(workspacePath, repoName)
+            console.log(`[Pipeline] GitHub push ok: ${repoUrl}`)
+          } catch (err) {
+            console.error(`[Pipeline] GitHub push epäonnistui:`, err)
+            // Don't fail the pipeline if GitHub push fails
+          }
+        } else {
+          console.log('[Pipeline] GITHUB_TOKEN puuttuu — ohitetaan GitHub push')
+        }
+
+        // Deploy with PM2 (if project has a start script)
+        let deployUrl: string | undefined
+        let deployPort: number | undefined
+        try {
+          const deployResult = await deployWithPM2(workspacePath, card.id, repoName)
+          if (deployResult) {
+            deployUrl = deployResult.deployUrl
+            deployPort = deployResult.port
+            console.log(`[Pipeline] Deploy ok: ${deployUrl}`)
+          }
+        } catch (err) {
+          console.error(`[Pipeline] Deploy epäonnistui:`, err)
+          // Don't fail the pipeline if deploy fails
+        }
+
+        // Store deploy info in card
+        await prisma.card.update({
+          where: { id: card.id },
+          data: {
+            repoUrl: repoUrl ?? null,
+            deployUrl: deployUrl ?? null,
+            deployPort: deployPort ?? null,
+          },
+        })
+
+        // Store deploy summary
+        const deploySummary = [
+          repoUrl ? `GitHub: ${repoUrl}` : 'GitHub: ohitettu (ei GITHUB_TOKEN)',
+          deployUrl ? `Deploy: ${deployUrl}` : 'Deploy: ohitettu (ei start-scriptiä)',
+        ].join('\n')
+
+        await prisma.pipelineMessage.create({
+          data: {
+            pipelineRunId: run.id,
+            role: 'assistant',
+            content: deploySummary,
+            artifactType: 'deploy_info',
+          },
+        })
+      }
+
       // --- Complete: move card to Valmis ---
       const valmisPosition = await getNextPosition(valmisId)
-      await advanceToStage(run.id, card.id, 'TESTING', 'COMPLETED', valmisId, valmisPosition)
+      await advanceToStage(run.id, card.id, 'DEPLOYING', 'COMPLETED', valmisId, valmisPosition)
 
       await prisma.pipelineRun.update({
         where: { id: run.id },

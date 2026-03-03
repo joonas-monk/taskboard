@@ -6,24 +6,28 @@ const STATUS_LABELS: Record<string, string> = {
   AWAITING_APPROVAL: 'Odottaa',
   EXECUTING: 'Toteutetaan',
   AWAITING_EXEC_REVIEW: 'Tarkistus',
+  BUILDING: 'Rakennetaan',
   TESTING: 'Testataan',
   TEST_FAILED: 'Hylatty',
+  DEPLOYING: 'Julkaistaan',
   COMPLETED: 'Valmis',
   FAILED: 'Virhe',
   PAUSED: 'Pysaytetty',
 }
 
-const ACTIVE_STATUSES = new Set(['QUEUED', 'PLANNING', 'EXECUTING', 'TESTING'])
+const ACTIVE_STATUSES = new Set(['QUEUED', 'PLANNING', 'EXECUTING', 'BUILDING', 'TESTING', 'DEPLOYING'])
 
 // Progress as fraction: 0–1
 const STATUS_PROGRESS: Record<string, number> = {
   QUEUED: 0.05,
-  PLANNING: 0.25,
-  AWAITING_APPROVAL: 0.3,
-  EXECUTING: 0.6,
-  AWAITING_EXEC_REVIEW: 0.65,
-  TESTING: 0.85,
-  TEST_FAILED: 0.85,
+  PLANNING: 0.2,
+  AWAITING_APPROVAL: 0.25,
+  EXECUTING: 0.45,
+  AWAITING_EXEC_REVIEW: 0.5,
+  BUILDING: 0.6,
+  TESTING: 0.75,
+  TEST_FAILED: 0.75,
+  DEPLOYING: 0.9,
   COMPLETED: 1,
   FAILED: 0,
   PAUSED: 0,
@@ -78,6 +82,11 @@ export default function PipelineIndicator({ status }: Props) {
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
             <circle cx="6" cy="6" r="4.5" stroke="#FF9500" strokeWidth="1.2"/>
             <path d="M6 3.5V6.5L8 8" stroke="#FF9500" strokeWidth="1.2" strokeLinecap="round"/>
+          </svg>
+        )}
+        {status === 'DEPLOYING' && (
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
+            <path d="M6 2V10M6 2L3 5M6 2L9 5" stroke="#007AFF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         )}
         <span className="text-[11px] font-semibold" style={{ color }}>{label}</span>

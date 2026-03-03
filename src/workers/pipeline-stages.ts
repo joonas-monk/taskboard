@@ -182,6 +182,7 @@ export async function runTestingStage(
   card: { title: string },
   planText: string,
   executionResult: string,
+  buildOutput?: string,
 ): Promise<string> {
   const anthropic = new Anthropic()
 
@@ -192,7 +193,7 @@ export async function runTestingStage(
       messages: [
         {
           role: 'user',
-          content: buildTestingPrompt(card.title, planText, executionResult),
+          content: buildTestingPrompt(card.title, planText, executionResult, buildOutput),
         },
       ],
     })
