@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { updateTask, deleteTask } from '@/actions/tasks'
 import type { SerializedCard, ActionResult, CardWithLabels } from '@/types'
 import PipelineView from './PipelineView'
+import PipelineActions from './PipelineActions'
 
 type Tab = 'kortti' | 'pipeline'
 
@@ -277,6 +278,15 @@ export function CardModal({ card, labels, onClose }: Props) {
                   </div>
                 )}
               </div>
+
+              {/* Pipeline start/restart button for IDLE and FAILED cards */}
+              {(card.pipelineStatus === 'IDLE' || card.pipelineStatus === 'FAILED') && (
+                <PipelineActions
+                  cardId={card.id}
+                  status={card.pipelineStatus}
+                  onAction={() => router.refresh()}
+                />
+              )}
             </>
           )}
 
