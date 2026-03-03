@@ -11,31 +11,33 @@ import {
 const PIPELINE_MODEL = process.env.PIPELINE_MODEL ?? 'claude-haiku-4-5-20251001'
 
 /**
- * Retry an async function with exponential backoff on rate limit (429) errors.
- * Retries up to maxAttempts times with delays: 2s, 8s, 32s (base * 4^attempt).
+ * Retry an async function with exponential backoff on transient API errors.
+ * Handles 429 (rate limit), 529 (overloaded), and 500/502/503 (server errors).
+ * Retries up to maxAttempts times with delays: 5s, 20s, 80s (base * 4^attempt).
  */
 async function withRetry<T>(
   fn: () => Promise<T>,
-  maxAttempts = 3,
-  baseDelayMs = 2000,
+  maxAttempts = 4,
+  baseDelayMs = 5000,
 ): Promise<T> {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       return await fn()
     } catch (err: unknown) {
-      const isRateLimit =
-        err != null &&
-        typeof err === 'object' &&
-        'status' in err &&
-        (err as { status: number }).status === 429
+      const status =
+        err != null && typeof err === 'object' && 'status' in err
+          ? (err as { status: number }).status
+          : 0
 
-      if (!isRateLimit || attempt === maxAttempts - 1) {
+      const isRetryable = status === 429 || status === 529 || status === 500 || status === 502 || status === 503
+
+      if (!isRetryable || attempt === maxAttempts - 1) {
         throw err
       }
 
       const delay = baseDelayMs * Math.pow(4, attempt)
       console.log(
-        `[Pipeline] API-rajoitus (429), odotetaan ${delay / 1000}s ennen uudelleenyritystä (${attempt + 1}/${maxAttempts})...`
+        `[Pipeline] API-virhe (${status}), odotetaan ${delay / 1000}s ennen uudelleenyritystä (${attempt + 1}/${maxAttempts})...`
       )
       await new Promise((resolve) => setTimeout(resolve, delay))
     }
