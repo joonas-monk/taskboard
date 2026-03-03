@@ -32,29 +32,32 @@ export interface BuildStep {
 function runStep(
   name: string,
   command: string,
-  workspacePath: string,
+  projectRoot: string,
   timeoutMs = 120000,
 ): BuildStep {
   const start = Date.now()
+
+  // Build PATH with venv/bin prepended if .venv exists
+  const venvBin = path.join(projectRoot, '.venv', 'bin')
+  const hasVenv = existsSync(venvBin)
+  const stepPath = [
+    ...(hasVenv ? [venvBin] : []),
+    '/usr/local/bin',
+    '/usr/bin',
+    '/bin',
+    process.env.PATH ?? '',
+  ].filter(Boolean).join(':')
+
   try {
     const output = execSync(command, {
-      cwd: workspacePath,
+      cwd: projectRoot,
       timeout: timeoutMs,
       env: {
         ...process.env,
         NODE_ENV: 'development', // needed for devDependencies
         CI: 'true',
-        // Ensure node/npm/python are available for deploy user
-        PATH: [
-          '/usr/local/bin',
-          '/usr/bin',
-          '/bin',
-          process.env.PATH ?? '',
-        ].filter(Boolean).join(':'),
-        // Use project venv python if available
-        VIRTUAL_ENV: existsSync(path.join(workspacePath, '.venv'))
-          ? path.join(workspacePath, '.venv')
-          : (process.env.VIRTUAL_ENV ?? ''),
+        PATH: stepPath,
+        ...(hasVenv ? { VIRTUAL_ENV: path.join(projectRoot, '.venv') } : {}),
       },
       maxBuffer: 10 * 1024 * 1024, // 10MB
     }).toString()
