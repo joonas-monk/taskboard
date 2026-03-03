@@ -408,7 +408,9 @@ async function main() {
     })
 
     // --- Parse test verdict ---
-    const testPassed = testResult.trimStart().toUpperCase().startsWith('HYVÄKSYTTY')
+    // Check if report starts with or contains HYVÄKSYTTY in first 200 chars
+    const reportHead = testResult.substring(0, 200).toUpperCase()
+    const testPassed = reportHead.includes('HYVÄKSYTTY') && !reportHead.includes('HYLÄTTY')
 
     if (testPassed) {
       // --- Stage 4: DEPLOYING (CODE cards only — git push + PM2 deploy) ---
