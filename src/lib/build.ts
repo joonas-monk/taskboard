@@ -89,6 +89,35 @@ function getScripts(workspacePath: string): Record<string, string> {
 }
 
 /**
+ * Find the actual project root within a workspace.
+ * The AI agent may create the project in a subdirectory (e.g., polymarket-hedge-bot/).
+ * Check the workspace root first, then immediate subdirectories.
+ */
+function findProjectRoot(workspacePath: string): { root: string; type: 'node' | 'python' | 'go' | 'unknown' } {
+  // Check workspace root first
+  if (existsSync(path.join(workspacePath, 'package.json'))) return { root: workspacePath, type: 'node' }
+  if (existsSync(path.join(workspacePath, 'requirements.txt')) || existsSync(path.join(workspacePath, 'pyproject.toml'))) return { root: workspacePath, type: 'python' }
+  if (existsSync(path.join(workspacePath, 'go.mod'))) return { root: workspacePath, type: 'go' }
+
+  // Check immediate subdirectories
+  try {
+    const { readdirSync, statSync } = require('node:fs')
+    const entries = readdirSync(workspacePath) as string[]
+    for (const entry of entries) {
+      if (entry.startsWith('.')) continue
+      const subdir = path.join(workspacePath, entry)
+      try { if (!statSync(subdir).isDirectory()) continue } catch { continue }
+
+      if (existsSync(path.join(subdir, 'package.json'))) return { root: subdir, type: 'node' }
+      if (existsSync(path.join(subdir, 'requirements.txt')) || existsSync(path.join(subdir, 'pyproject.toml'))) return { root: subdir, type: 'python' }
+      if (existsSync(path.join(subdir, 'go.mod'))) return { root: subdir, type: 'go' }
+    }
+  } catch { /* ignore readdir errors */ }
+
+  return { root: workspacePath, type: 'unknown' }
+}
+
+/**
  * Run the full build verification pipeline for a workspace.
  *
  * Steps:
@@ -101,32 +130,57 @@ function getScripts(workspacePath: string): Record<string, string> {
  */
 export function runBuildVerification(workspacePath: string): BuildResult {
   const steps: BuildStep[] = []
-  const pkgPath = path.join(workspacePath, 'package.json')
+  const project = findProjectRoot(workspacePath)
 
+  if (project.root !== workspacePath) {
+    console.log(`[Build] Projekti löytyi alihakemistosta: ${path.basename(project.root)}`)
+  }
+
+  if (project.type === 'python') {
+    // Python project — run pip install and pytest
+    const hasPyproject = existsSync(path.join(project.root, 'pyproject.toml'))
+    const hasRequirements = existsSync(path.join(project.root, 'requirements.txt'))
+
+    if (hasPyproject) {
+      steps.push(runStep('pip install', 'python3 -m pip install -e ".[dev]" 2>/dev/null || python3 -m pip install -e . 2>/dev/null || pip install -r requirements.txt 2>/dev/null || true', project.root))
+    } else if (hasRequirements) {
+      steps.push(runStep('pip install', 'pip install -r requirements.txt 2>/dev/null || python3 -m pip install -r requirements.txt 2>/dev/null || true', project.root))
+    }
+
+    // Run pytest if tests exist
+    const hasTests = existsSync(path.join(project.root, 'tests'))
+    if (hasTests) {
+      steps.push(runStep('pytest', 'python3 -m pytest tests/ -v --tb=short 2>&1 || pytest tests/ -v --tb=short 2>&1', project.root, 180000))
+    }
+
+    return buildSummary(steps)
+  } else if (project.type === 'go') {
+    steps.push(runStep('go build', 'go build ./...', project.root))
+    steps.push(runStep('go test', 'go test ./...', project.root))
+    return buildSummary(steps)
+  } else if (project.type === 'unknown') {
+    // No recognizable project — skip build verification
+    return {
+      success: true,
+      steps: [],
+      summary: 'Ei package.json tai muuta tunnistettavaa projektityyppiä — build-verifikaatio ohitettu.',
+    }
+  }
+
+  // Node.js project
+  const pkgPath = path.join(project.root, 'package.json')
   if (!existsSync(pkgPath)) {
-    // No package.json — check for other project types
-    const hasPythonReqs = existsSync(path.join(workspacePath, 'requirements.txt'))
-    const hasGoMod = existsSync(path.join(workspacePath, 'go.mod'))
-
-    if (hasPythonReqs) {
-      steps.push(runStep('pip install', 'pip install -r requirements.txt', workspacePath))
-    } else if (hasGoMod) {
-      steps.push(runStep('go build', 'go build ./...', workspacePath))
-      steps.push(runStep('go test', 'go test ./...', workspacePath))
-    } else {
-      // No recognizable project — skip build verification
-      return {
-        success: true,
-        steps: [],
-        summary: 'Ei package.json tai muuta tunnistettavaa projektityyppiä — build-verifikaatio ohitettu.',
-      }
+    return {
+      success: true,
+      steps: [],
+      summary: 'Ei package.json tai muuta tunnistettavaa projektityyppiä — build-verifikaatio ohitettu.',
     }
   } else {
     // Node.js project
-    const scripts = getScripts(workspacePath)
+    const scripts = getScripts(project.root)
 
     // Step 1: npm install
-    steps.push(runStep('npm install', 'npm install', workspacePath, 180000))
+    steps.push(runStep('npm install', 'npm install', project.root, 180000))
 
     if (!steps[steps.length - 1].success) {
       // If install fails, don't try to build/test
@@ -134,23 +188,23 @@ export function runBuildVerification(workspacePath: string): BuildResult {
     }
 
     // Step 2: TypeScript check (if tsconfig exists)
-    if (existsSync(path.join(workspacePath, 'tsconfig.json'))) {
-      steps.push(runStep('tsc --noEmit', 'npx tsc --noEmit', workspacePath, 60000))
+    if (existsSync(path.join(project.root, 'tsconfig.json'))) {
+      steps.push(runStep('tsc --noEmit', 'npx tsc --noEmit', project.root, 60000))
     }
 
     // Step 3: npm run build (if available)
     if (scripts.build) {
-      steps.push(runStep('npm run build', 'npm run build', workspacePath, 120000))
+      steps.push(runStep('npm run build', 'npm run build', project.root, 120000))
     }
 
     // Step 4: npm test (if available)
     if (scripts.test && scripts.test !== 'echo "Error: no test specified" && exit 1') {
-      steps.push(runStep('npm test', 'npm test', workspacePath, 120000))
+      steps.push(runStep('npm test', 'npm test', project.root, 120000))
     }
 
     // Step 5: npm run lint (if available)
     if (scripts.lint) {
-      steps.push(runStep('npm run lint', 'npm run lint', workspacePath, 60000))
+      steps.push(runStep('npm run lint', 'npm run lint', project.root, 60000))
     }
   }
 
