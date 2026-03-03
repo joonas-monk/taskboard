@@ -23,10 +23,11 @@ export function AddCardForm({ columnId, lastPosition, onOptimisticAdd, isIdeaCol
     if (!title.trim()) return
 
     const selectedCardType = isIdeaColumn ? cardType : 'GENERAL'
+    const trimmedTitle = title.trim()
 
     const optimisticCard: SerializedCard = {
       id: 'optimistic-' + Date.now(),
-      title: title.trim(),
+      title: trimmedTitle,
       description: '',
       priority: 'MEDIUM',
       dueDate: null,
@@ -40,16 +41,18 @@ export function AddCardForm({ columnId, lastPosition, onOptimisticAdd, isIdeaCol
       pipelineStatus: 'IDLE',
     }
 
+    // Reset form immediately (outside transition so UI updates instantly)
+    setTitle('')
+    setCardType('GENERAL')
+    setOpen(false)
+    setError(null)
+
     startTransition(async () => {
       onOptimisticAdd(optimisticCard)
-      setTitle('')
-      setCardType('GENERAL')
-      setOpen(false)
-      setError(null)
       const result = await createTask({
-        title: optimisticCard.title,
+        title: trimmedTitle,
         columnId,
-        cardType: isIdeaColumn ? cardType : undefined,
+        cardType: isIdeaColumn ? selectedCardType : undefined,
       })
       if (!result.success) {
         setError(result.error)
