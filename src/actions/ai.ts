@@ -12,23 +12,33 @@ function formatZodError(error: { issues: Array<{ message: string }> }): string {
   return error.issues.map((i) => i.message).join(', ')
 }
 
-/** Spawn a detached pipeline worker process for a card. */
+/**
+ * Spawn a detached pipeline worker process for a card.
+ * In production, runs as 'deploy' user (uid 1001) to avoid Claude Code CLI's
+ * root restriction on --dangerously-skip-permissions.
+ */
 function spawnWorker(cardId: string): void {
   const appRoot = process.env.APP_ROOT || process.cwd()
   const workerPath = path.resolve(appRoot, 'src/workers/pipeline-worker.ts')
   const tsxPath = path.resolve(appRoot, 'node_modules/.bin/tsx')
 
+  // In production, run as deploy user (Claude Code CLI refuses root + bypassPermissions)
+  const isProduction = process.env.NODE_ENV === 'production'
+  const DEPLOY_UID = 1001
+  const DEPLOY_GID = 1001
+
   const worker = spawn(tsxPath, [workerPath, cardId], {
     cwd: appRoot,
     detached: true,
     stdio: 'ignore',
+    ...(isProduction ? { uid: DEPLOY_UID, gid: DEPLOY_GID } : {}),
     env: {
       DATABASE_URL: process.env.DATABASE_URL!,
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
       PIPELINE_MODEL: process.env.PIPELINE_MODEL ?? 'claude-haiku-4-5-20251001',
       NODE_ENV: process.env.NODE_ENV ?? 'production',
-      PATH: process.env.PATH,
-      HOME: process.env.HOME,
+      PATH: '/usr/local/bin:/usr/bin:/bin' + (process.env.PATH ? `:${process.env.PATH}` : ''),
+      HOME: isProduction ? '/home/deploy' : (process.env.HOME ?? ''),
       // Production pipeline env vars
       GITHUB_TOKEN: process.env.GITHUB_TOKEN ?? '',
       VPS_HOST: process.env.VPS_HOST ?? '187.77.226.235',
